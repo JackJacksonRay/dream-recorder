@@ -10,7 +10,7 @@ document.getElementById('recordButton').addEventListener('click', async () => {
     mediaRecorder.start();
     document.getElementById('recordButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
-    fadeInStatus('Запись идёт...');
+    fadeInStatus('Идёт запись...');
     document.getElementById('progressBar').style.display = 'none';
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
