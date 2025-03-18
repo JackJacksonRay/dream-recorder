@@ -18,6 +18,8 @@ html, body {
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.5s ease;
 }
 
 .loader::after {
@@ -31,6 +33,11 @@ html, body {
   box-shadow: 0 0 10px #00c6ff;
 }
 
+.loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -39,30 +46,33 @@ html, body {
 /* Анимированные волны */
 .wave-container {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  z-index: 0;
 }
 
 .wave {
   position: absolute;
-  bottom: 0;
+  top: 0;
   width: 200%;
-  height: 200px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,128L48,138.7C96,149,192,171,288,170.7C384,171,480,149,576,138.7C672,128,768,128,864,138.7C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-  animation: wave 20s linear infinite; /* Медленная анимация */
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,128L48,138.7C96,149,192,171,288,170.7C384,171,480,149,576,138.7C672,128,768,128,864,138.7C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128V320H0V128Z'%3E%3C/path%3E%3C/svg%3E");
+  animation: wave 25s linear infinite;
 }
 
 .wave:nth-child(2) {
-  animation-duration: 25s;
+  animation-duration: 30s;
   opacity: 0.4;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,160L48,170.7C96,181,192,203,288,202.7C384,203,480,181,576,170.7C672,160,768,160,864,170.7C960,181,1056,203,1152,202.7C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,160L48,170.7C96,181,192,203,288,202.7C384,203,480,181,576,170.7C672,160,768,160,864,170.7C960,181,1056,203,1152,202.7C1248,203,1344,181,1392,170.7L1440,160V320H0V160Z'%3E%3C/path%3E%3C/svg%3E");
 }
 
 .wave:nth-child(3) {
-  animation-duration: 30s;
+  animation-duration: 35s;
   opacity: 0.3;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,192L48,202.7C96,213,192,235,288,234.7C384,235,480,213,576,202.7C672,192,768,192,864,202.7C960,213,1056,235,1152,234.7C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300c6ff' fill-opacity='0.2' d='M0,192L48,202.7C96,213,192,235,288,234.7C384,235,480,213,576,202.7C672,192,768,192,864,202.7C960,213,1056,235,1152,234.7C1248,235,1344,213,1392,202.7L1440,192V320H0V192Z'%3E%3C/path%3E%3C/svg%3E");
 }
 
 @keyframes wave {
@@ -81,18 +91,19 @@ html, body {
   width: 90%;
   max-width: 500px;
   margin: 0 auto;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  border: 1px solid transparent;
-  background-image: linear-gradient(to right, rgba(26, 42, 42, 0.8), transparent),
-                    linear-gradient(to bottom, rgba(26, 42, 42, 0.8), transparent);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
+  height: auto;
+  min-height: 60%;
+  border: 2px solid;
+  border-image: linear-gradient(to right, #1a2a2a, transparent) 1;
 }
 
 h1 {
@@ -173,6 +184,7 @@ h1 {
   .container {
     padding: 20px;
     width: 95%;
+    min-height: 70%;
   }
   .btn {
     padding: 12px 20px;

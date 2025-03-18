@@ -8,13 +8,13 @@ if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.expand();
 }
 
-// Скрытие прелоадера через 3 секунды или при загрузке
+// Скрытие прелоадера через 4 секунды или при загрузке
 setTimeout(() => {
-  document.querySelector('.loader').style.display = 'none';
-}, 3000);
+  document.querySelector('.loader').classList.add('hidden');
+}, 4000);
 
 window.addEventListener('load', () => {
-  document.querySelector('.loader').style.display = 'none';
+  document.querySelector('.loader').classList.add('hidden');
 });
 
 document.getElementById('recordButton').addEventListener('click', async () => {
