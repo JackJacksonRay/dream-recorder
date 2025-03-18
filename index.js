@@ -5,7 +5,7 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const BOT_TOKEN = process.env.BOT_TOKEN;Токен от @BotFather
+const BOT_TOKEN = process.env.BOT_TOKEN; // Токен от @BotFather
 const CHAT_ID = '-1002502923348'; // Telegram ID или ID канала
 const bot = new TelegramBot(BOT_TOKEN);
 
