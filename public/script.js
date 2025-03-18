@@ -2,9 +2,17 @@ let mediaRecorder;
 let audioChunks = [];
 let loadingInterval;
 
-// Полноэкранный режим и скрытие прелоадера
-window.Telegram.WebApp.ready();
-window.Telegram.WebApp.expand();
+// Проверка и инициализация Telegram Web App
+if (window.Telegram?.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+}
+
+// Скрытие прелоадера через 3 секунды или при загрузке
+setTimeout(() => {
+  document.querySelector('.loader').style.display = 'none';
+}, 3000);
+
 window.addEventListener('load', () => {
   document.querySelector('.loader').style.display = 'none';
 });
