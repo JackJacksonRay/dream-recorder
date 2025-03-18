@@ -6,7 +6,10 @@ let loadingInterval;
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
-  // Дополнительный вызов через таймер для надёжности
+  // Многократный вызов expand() для надёжности
+  setTimeout(() => {
+    window.Telegram.WebApp.expand();
+  }, 500);
   setTimeout(() => {
     window.Telegram.WebApp.expand();
   }, 1000);
@@ -14,18 +17,14 @@ if (window.Telegram?.WebApp) {
 
 // Отладка: убедимся, что прелоадер виден
 console.log("Прелоадер должен быть виден");
-document.querySelector('.loader').style.display = 'flex';
+const loader = document.querySelector('.loader');
+loader.style.display = 'flex';
 
-// Скрытие прелоадера через 5 секунд или при загрузке
+// Скрытие прелоадера через 5 секунд
 setTimeout(() => {
   console.log("Скрываем прелоадер");
-  document.querySelector('.loader').classList.add('hidden');
+  loader.classList.add('hidden');
 }, 5000);
-
-window.addEventListener('load', () => {
-  console.log("Событие load сработало");
-  document.querySelector('.loader').classList.add('hidden');
-});
 
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
