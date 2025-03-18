@@ -6,14 +6,24 @@ let loadingInterval;
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
+  // Дополнительный вызов через таймер для надёжности
+  setTimeout(() => {
+    window.Telegram.WebApp.expand();
+  }, 1000);
 }
 
-// Скрытие прелоадера через 4 секунды или при загрузке
+// Отладка: убедимся, что прелоадер виден
+console.log("Прелоадер должен быть виден");
+document.querySelector('.loader').style.display = 'flex';
+
+// Скрытие прелоадера через 5 секунд или при загрузке
 setTimeout(() => {
+  console.log("Скрываем прелоадер");
   document.querySelector('.loader').classList.add('hidden');
-}, 4000);
+}, 5000);
 
 window.addEventListener('load', () => {
+  console.log("Событие load сработало");
   document.querySelector('.loader').classList.add('hidden');
 });
 
