@@ -2,6 +2,13 @@ let mediaRecorder;
 let audioChunks = [];
 let loadingInterval;
 
+// Полноэкранный режим и скрытие прелоадера
+window.Telegram.WebApp.ready();
+window.Telegram.WebApp.expand();
+window.addEventListener('load', () => {
+  document.querySelector('.loader').style.display = 'none';
+});
+
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
   try {
