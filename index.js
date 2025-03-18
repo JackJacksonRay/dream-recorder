@@ -5,14 +5,14 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const BOT_TOKEN = '7834813546:AAHNMrx4KnV43wqC0pLF88wLZ5sFKzgSLi8'; // Токен от @BotFather
+const BOT_TOKEN = process.env.BOT_TOKEN;Токен от @BotFather
 const CHAT_ID = '-1002502923348'; // Telegram ID или ID канала
 const bot = new TelegramBot(BOT_TOKEN);
 
 app.use(fileUpload());
 app.use(express.static('public'));
 
-const ASSEMBLYAI_API_KEY = '273cf5121cba49e08a256b2066a5b065'; // Твой API Key от AssemblyAI
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Твой API Key от AssemblyAI
 
 app.post('/transcribe', async (req, res) => {
   const audio = req.files.audio;

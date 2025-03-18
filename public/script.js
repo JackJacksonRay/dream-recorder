@@ -10,14 +10,14 @@ document.getElementById('recordButton').addEventListener('click', async () => {
     mediaRecorder.start();
     document.getElementById('recordButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
-    document.getElementById('status').textContent = 'Запись идёт...';
-    document.getElementById('progressBar').style.display = 'none'; // Скрываем полоску
+    fadeInStatus('Запись идёт...');
+    document.getElementById('progressBar').style.display = 'none';
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
     };
   } catch (error) {
     console.error('Ошибка при доступе к микрофону:', error);
-    document.getElementById('status').textContent = 'Ошибка доступа к микрофону';
+    fadeInStatus('Ошибка доступа к микрофону');
   }
 });
 
@@ -27,24 +27,22 @@ document.getElementById('stopButton').addEventListener('click', () => {
   document.getElementById('recordButton').disabled = false;
   document.getElementById('stopButton').disabled = true;
 
-  // Запускаем анимацию "Обработка..." с точками
   let dots = 0;
-  document.getElementById('status').textContent = 'Обработка';
+  fadeInStatus('Обработка');
   loadingInterval = setInterval(() => {
     dots = (dots + 1) % 4;
     document.getElementById('status').textContent = 'Обработка' + '.'.repeat(dots);
   }, 500);
 
-  // Показываем и анимируем полоску прогресса
   const progressBar = document.getElementById('progressBar');
   progressBar.style.display = 'block';
   let progress = 0;
   const progressInterval = setInterval(() => {
     progress += 10;
-    if (progress <= 90) { // Не доходит до 100%, пока не получим ответ
+    if (progress <= 90) {
       progressBar.style.width = `${progress}%`;
     }
-  }, 1000); // Увеличиваем каждую секунду
+  }, 1000);
 
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -57,22 +55,31 @@ document.getElementById('stopButton').addEventListener('click', () => {
         body: formData
       });
       const result = await response.json();
-      
-      // Останавливаем анимацию и завершаем прогресс
       clearInterval(loadingInterval);
       clearInterval(progressInterval);
-      progressBar.style.width = '100%'; // Завершаем полоску
+      progressBar.style.width = '100%';
       setTimeout(() => {
-        progressBar.style.display = 'none'; // Скрываем после завершения
+        progressBar.style.display = 'none';
       }, 500);
-      document.getElementById('status').textContent = `Текст: ${result.text}`;
+      fadeInStatus(`Текст: ${result.text}`);
     } catch (error) {
       console.error('Ошибка при отправке аудио:', error);
       clearInterval(loadingInterval);
       clearInterval(progressInterval);
       progressBar.style.display = 'none';
-      document.getElementById('status').textContent = 'Ошибка при обработке аудио';
+      fadeInStatus('Ошибка при обработке аудио');
     }
     audioChunks = [];
   };
 });
+
+// Функция для плавного появления текста
+function fadeInStatus(text) {
+  const status = document.getElementById('status');
+  status.style.opacity = '0';
+  status.textContent = text;
+  setTimeout(() => {
+    status.style.transition = 'opacity 0.5s ease';
+    status.style.opacity = '1';
+  }, 10);
+}
