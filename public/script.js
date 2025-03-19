@@ -21,6 +21,8 @@ setTimeout(() => {
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
+// [Остальной код остался прежним]
+
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
   try {
