@@ -91,37 +91,53 @@ html, body {
   left: 0;
   width: 200%;
   height: 100%;
-  background-size: cover;
   opacity: 0.7;
   filter: blur(8px);
 }
 
 .wave-1 {
-  background: linear-gradient(90deg, #ffb6c1, #a3d8f4);
-  animation: waveFlow 20s linear infinite;
-  clip-path: polygon(0 0, 100% 0, 100% 60%, 95% 65%, 90% 70%, 85% 65%, 80% 60%, 75% 65%, 70% 70%, 65% 65%, 60% 60%, 55% 65%, 50% 70%, 45% 65%, 40% 60%, 35% 65%, 30% 70%, 25% 65%, 20% 60%, 15% 65%, 10% 70%, 5% 65%, 0 60%);
+  background: linear-gradient(90deg, #a3d8f4, #4ecdc4);
+  animation: waveFlow 20s ease-in-out infinite;
+  clip-path: polygon(
+    0 30%, 5% 35%, 10% 30%, 15% 25%, 20% 30%, 25% 35%, 30% 30%, 35% 25%, 
+    40% 30%, 45% 35%, 50% 30%, 55% 25%, 60% 30%, 65% 35%, 70% 30%, 75% 25%, 
+    80% 30%, 85% 35%, 90% 30%, 95% 25%, 100% 30%, 100% 100%, 0 100%
+  );
+  top: 0;
 }
 
 .wave-2 {
-  background: linear-gradient(90deg, #a3d8f4, #d4a5a5);
-  animation: waveFlowReverse 25s linear infinite;
-  clip-path: polygon(0 0, 100% 0, 100% 70%, 95% 75%, 90% 80%, 85% 75%, 80% 70%, 75% 75%, 70% 80%, 65% 75%, 60% 70%, 55% 75%, 50% 80%, 45% 75%, 40% 70%, 35% 75%, 30% 80%, 25% 75%, 20% 70%, 15% 75%, 10% 80%, 5% 75%, 0 70%);
+  background: linear-gradient(90deg, #4ecdc4, #a3d8f4);
+  animation: waveFlowReverse 25s ease-in-out infinite;
+  clip-path: polygon(
+    0 40%, 5% 45%, 10% 40%, 15% 35%, 20% 40%, 25% 45%, 30% 40%, 35% 35%, 
+    40% 40%, 45% 45%, 50% 40%, 55% 35%, 60% 40%, 65% 45%, 70% 40%, 75% 35%, 
+    80% 40%, 85% 45%, 90% 40%, 95% 35%, 100% 40%, 100% 100%, 0 100%
+  );
+  top: 10%;
 }
 
 .wave-3 {
-  background: linear-gradient(90deg, #d4a5a5, #ffb6c1);
-  animation: waveFlow 30s linear infinite;
-  clip-path: polygon(0 0, 100% 0, 100% 80%, 95% 85%, 90% 90%, 85% 85%, 80% 80%, 75% 85%, 70% 90%, 65% 85%, 60% 80%, 55% 85%, 50% 90%, 45% 85%, 40% 80%, 35% 85%, 30% 90%, 25% 85%, 20% 80%, 15% 85%, 10% 90%, 5% 85%, 0 80%);
+  background: linear-gradient(90deg, #a3d8f4, #4ecdc4);
+  animation: waveFlow 30s ease-in-out infinite;
+  clip-path: polygon(
+    0 50%, 5% 55%, 10% 50%, 15% 45%, 20% 50%, 25% 55%, 30% 50%, 35% 45%, 
+    40% 50%, 45% 55%, 50% 50%, 55% 45%, 60% 50%, 65% 55%, 70% 50%, 75% 45%, 
+    80% 50%, 85% 55%, 90% 50%, 95% 45%, 100% 50%, 100% 100%, 0 100%
+  );
+  top: 20%;
 }
 
 @keyframes waveFlow {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  50% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
 }
 
 @keyframes waveFlowReverse {
   0% { transform: translateX(0); }
-  100% { transform: translateX(50%); }
+  50% { transform: translateX(50%); }
+  100% { transform: translateX(0); }
 }
 
 /* Контейнер */
@@ -229,12 +245,12 @@ h1 {
 .progress-bar {
   width: 0;
   height: 8px;
-  background: linear-gradient(90deg, #ffb6c1, #a3d8f4);
+  background: linear-gradient(90deg, #a3d8f4, #4ecdc4);
   border-radius: 5px;
   margin-top: 20px;
   transition: width 0.3s ease-in-out;
   display: none;
-  box-shadow: 0 0 10px rgba(255, 182, 193, 0.3);
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
 }
 
 /* Адаптивность */

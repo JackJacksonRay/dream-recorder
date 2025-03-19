@@ -21,6 +21,35 @@ setTimeout(() => {
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
+// Динамическое изменение цвета волн
+const waves = [
+  document.querySelector('.wave-1'),
+  document.querySelector('.wave-2'),
+  document.querySelector('.wave-3')
+];
+
+// Цвета для градиентов
+const colorSets = [
+  ['#a3d8f4', '#4ecdc4'], // Нежный голубой - бирюзовый
+  ['#4ecdc4', '#a3d8f4'],
+  ['#a3d8f4', '#4ecdc4']
+];
+
+// Функция для изменения цвета
+function updateWaveColors() {
+  waves.forEach((wave, index) => {
+    if (!wave) return;
+    const hueShift = Math.sin(Date.now() / 3000 + index) * 20;
+    const baseColor1 = colorSets[index][0];
+    const baseColor2 = colorSets[index][1];
+    wave.style.background = `linear-gradient(90deg, ${baseColor1}, ${baseColor2})`;
+  });
+  requestAnimationFrame(updateWaveColors);
+}
+
+// Запуск анимации цвета
+updateWaveColors();
+
 // [Остальной код для записи остался прежним]
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
