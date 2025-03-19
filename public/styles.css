@@ -1,3 +1,8 @@
+:root {
+  --wave-speed: 1s;
+  --wave-amplitude: 10px;
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -5,10 +10,9 @@ html, body {
   padding: 0;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
-  background: #1a2a2a; /* Тёмный фон */
+  background: #1a2a2a;
 }
 
-/* Прелоадер */
 .loader {
   position: fixed;
   top: 0;
@@ -35,7 +39,6 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
 }
 
 .loader-text span {
@@ -53,28 +56,11 @@ html, body {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.loader::before {
-  content: '';
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #00c6ff, #ff6b6b, #4ecdc4);
-  animation: pulseGlow 2s ease-in-out infinite;
-  filter: blur(15px);
-}
-
-@keyframes pulseGlow {
-  0% { transform: scale(0.8); opacity: 0.6; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.8); opacity: 0.6; }
-}
-
 .loader.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-/* Анимированные волны */
 .wave-container {
   position: absolute;
   top: 0;
@@ -89,72 +75,14 @@ html, body {
   position: absolute;
   width: 100%;
   height: 100%;
-  filter: blur(8px);
+  filter: blur(8px) drop-shadow(0 0 10px rgba(0, 198, 255, 0.3));
+  transition: filter 0.1s ease;
 }
 
-.wave-1 {
-  top: 0;
-  animation: waveRoll 4s ease-in-out infinite;
+.wave-path {
+  transition: all var(--wave-speed) ease;
 }
 
-.wave-2 {
-  top: 3%;
-  animation: waveRollReverse 5s ease-in-out infinite 0.2s;
-}
-
-.wave-3 {
-  top: 6%;
-  animation: waveRoll 6s ease-in-out infinite 0.4s;
-}
-
-.wave-4 {
-  top: 9%;
-  animation: waveRollReverse 7s ease-in-out infinite 0.6s;
-}
-
-.wave-5 {
-  top: 12%;
-  animation: waveRoll 8s ease-in-out infinite 0.8s;
-}
-
-.wave-6 {
-  top: 15%;
-  animation: waveRollReverse 9s ease-in-out infinite 1s;
-}
-
-.wave-7 {
-  top: 18%;
-  animation: waveRoll 10s ease-in-out infinite 1.2s;
-}
-
-.wave-8 {
-  top: 21%;
-  animation: waveRollReverse 11s ease-in-out infinite 1.4s;
-}
-
-.wave-9 {
-  top: 24%;
-  animation: waveRoll 12s ease-in-out infinite 1.6s;
-}
-
-.wave-10 {
-  top: 27%;
-  animation: waveRollReverse 13s ease-in-out infinite 1.8s;
-}
-
-@keyframes waveRoll {
-  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
-  50% { transform: translateY(25px) translateX(15px) scale(1.05); opacity: 0.9; }
-  100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
-}
-
-@keyframes waveRollReverse {
-  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
-  50% { transform: translateY(20px) translateX(-10px) scale(1.03); opacity: 0.9; }
-  100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
-}
-
-/* Контейнер */
 .container {
   background: rgba(26, 42, 42, 0.5);
   backdrop-filter: blur(10px);
@@ -174,14 +102,7 @@ html, body {
   align-items: center;
   height: auto;
   min-height: 60%;
-  animation: containerPulse 4s infinite;
   box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
-}
-
-@keyframes containerPulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.02); }
-  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 h1 {
@@ -190,12 +111,6 @@ h1 {
   color: #ffffff;
   margin-bottom: 30px;
   text-shadow: 0 2px 10px rgba(0, 198, 255, 0.3);
-  animation: fadeIn 1s ease-in;
-}
-
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
 }
 
 .button-group {
@@ -252,8 +167,6 @@ h1 {
   margin-top: 25px;
   font-weight: 400;
   transition: opacity 0.5s ease;
-  text-shadow: 0 1px 5px rgba(0, 198, 255, 0.3);
-  animation: fadeIn 1.5s ease-in;
 }
 
 .progress-bar {
@@ -267,7 +180,6 @@ h1 {
   box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
 }
 
-/* Адаптивность */
 @media (max-width: 480px) {
   .container {
     padding: 20px;
