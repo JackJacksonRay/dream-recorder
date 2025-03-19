@@ -5,14 +5,14 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const BOT_TOKEN = process.env.BOT_TOKEN; // Токен от @BotFather
-const CHAT_ID = '-1002502923348'; // Telegram ID или ID канала
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHAT_ID = '-1002502923348';
 const bot = new TelegramBot(BOT_TOKEN);
 
 app.use(fileUpload());
 app.use(express.static('public'));
 
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Твой API Key от AssemblyAI
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
 
 app.post('/transcribe', async (req, res) => {
   const audio = req.files.audio;
@@ -52,7 +52,6 @@ app.post('/transcribe', async (req, res) => {
         const text = resultResponse.data.text;
         res.json({ text });
 
-        // Отправка в Telegram
         const now = new Date();
         const dateTime = now.toLocaleString('ru-RU');
         const message = `${dateTime}\n${text}`;

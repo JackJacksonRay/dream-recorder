@@ -12,6 +12,7 @@ const statusElement = document.getElementById('status');
 const timerElement = document.getElementById('timer');
 const audioPreview = document.getElementById('audioPreview');
 const progressBar = document.getElementById('progressBar');
+const loader = document.querySelector('.loader');
 
 // Инициализация Canvas для волн
 const canvas = document.createElement('canvas');
@@ -28,7 +29,7 @@ window.addEventListener('resize', resizeCanvas);
 
 // Оптимизированная отрисовка волн
 let lastFrame = 0;
-const throttleDelay = 100; // 10 FPS
+const throttleDelay = 100;
 
 function drawWaves(amplitude) {
   const now = Date.now();
@@ -64,12 +65,15 @@ try {
   showError('Ошибка интеграции с Telegram');
 }
 
-// Прелоадер
-const loader = document.querySelector('.loader');
-setTimeout(() => {
-  loader.classList.add('hidden');
-  document.querySelector('.container').style.display = 'flex';
-}, 2500);
+// Запуск прелоадера
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if(loader) {
+      loader.classList.add('hidden');
+      document.querySelector('.container').style.display = 'flex';
+    }
+  }, 2500);
+});
 
 // Таймер записи
 function startTimer() {
