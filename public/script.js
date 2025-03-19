@@ -15,72 +15,55 @@ const initialWavePaths = [
   "M0,140 Q125,120 250,140 T500,140 T750,140 T1000,140 V200 H0 Z"
 ];
 
+// Функция для вывода логов в интерфейс
+function logToInterface(message) {
+  const debugLog = document.getElementById('debugLog');
+  debugLog.textContent = message;
+  console.log(message); // Для отладки, если консоль доступна
+}
+
 // Проверка и инициализация Telegram Web App
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
   setTimeout(() => window.Telegram.WebApp.expand(), 500);
+  logToInterface("Telegram Web App инициализирован");
 }
 
 // Показ прелоадера
 const loader = document.querySelector('.loader');
 loader.style.display = 'flex';
-console.log("Прелоадер должен быть виден");
+logToInterface("Прелоадер должен быть виден");
 
 // Скрытие прелоадера через 2,5 секунды
 setTimeout(() => {
-  console.log("Скрываем прелоадер");
+  logToInterface("Скрываем прелоадер");
   loader.classList.add('hidden');
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
-// Инициализация Web Audio API для анализа звука
-async function setupAudioAnalysis(stream) {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioContext.createAnalyser();
-  source = audioContext.createMediaStreamSource(stream);
-  source.connect(analyser);
-  analyser.fftSize = 256;
-  const bufferLength = analyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
-
-  // Функция для обновления волн на основе громкости
-  const wavePaths = document.querySelectorAll('.wave-path');
-  function updateWaves() {
-    if (!isRecording) return;
-
-    analyser.getByteFrequencyData(dataArray);
-    const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
-    const amplitude = Math.min(avg / 128, 1) * 50; // Масштабируем амплитуду (0-50)
-
-    wavePaths.forEach((path, index) => {
-      const baseY = 100 + index * 10; // Базовая высота волны
-      const wavePoints = [];
-      for (let x = 0; x <= 1000; x += 125) {
-        const y = baseY + Math.sin(x / 50 + index) * (20 + amplitude);
-        wavePoints.push(`${x},${y}`);
-      }
-      const pathD = `M0,${baseY} Q${wavePoints.join(' Q')} V200 H0 Z`;
-      path.setAttribute('d', pathD);
-    });
-
-    requestAnimationFrame(updateWaves);
-  }
-
-  updateWaves();
-}
+// Проверка анимации волн
+const waves = document.querySelectorAll('.wave');
+logToInterface(`Найдено волн: ${waves.length}`);
 
 // Сброс волн в исходное состояние
 function resetWaves() {
+  logToInterface("Сброс волн в исходное состояние...");
   const wavePaths = document.querySelectorAll('.wave-path');
+  logToInterface(`Найдено волн для сброса: ${wavePaths.length}`);
   wavePaths.forEach((path, index) => {
+    if (!path) {
+      logToInterface(`Ошибка: путь волны не найден для сброса, индекс ${index}`);
+      return;
+    }
     path.setAttribute('d', initialWavePaths[index]);
+    logToInterface(`Волна ${index + 1} сброшена`);
   });
 }
 
 // [Остальной код для записи]
 document.getElementById('recordButton').addEventListener('click', async () => {
-  console.log('Нажата кнопка "Начать запись"');
+  logToInterface('Нажата кнопка "Начать запись"');
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
@@ -93,27 +76,20 @@ document.getElementById('recordButton').addEventListener('click', async () => {
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
     };
-
-    // Инициализация анализа звука
-    await setupAudioAnalysis(stream);
   } catch (error) {
-    console.error('Ошибка при доступе к микрофону:', error);
+    logToInterface(`Ошибка при доступе к микрофону: ${error.message}`);
     fadeInStatus('Ошибка доступа к микрофону');
   }
 });
 
 document.getElementById('stopButton').addEventListener('click', () => {
-  console.log('Нажата кнопка "Остановить запись"');
+  logToInterface('Нажата кнопка "Остановить запись"');
   mediaRecorder.stop();
   isRecording = false;
   document.getElementById('recordButton').disabled = false;
   document.getElementById('stopButton').disabled = true;
 
-  // Остановка Web Audio API и сброс волн
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-  }
+  // Сброс волн
   resetWaves();
 
   let dots = 0;
@@ -152,7 +128,7 @@ document.getElementById('stopButton').addEventListener('click', () => {
       }, 500);
       fadeInStatus(`Текст: ${result.text}`);
     } catch (error) {
-      console.error('Ошибка при отправке аудио:', error);
+      logToInterface(`Ошибка при отправке аудио: ${error.message}`);
       clearInterval(loadingInterval);
       clearInterval(progressInterval);
       progressBar.style.display = 'none';

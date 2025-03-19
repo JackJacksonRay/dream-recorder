@@ -99,28 +99,28 @@ html, body {
 
 .wave-2 {
   top: 5%;
-  animation: waveRoll 12s ease-in-out infinite;
+  animation: waveRoll 12s ease-in-out infinite 0.5s;
 }
 
 .wave-3 {
   top: 10%;
-  animation: waveRoll 14s ease-in-out infinite;
+  animation: waveRoll 14s ease-in-out infinite 1s;
 }
 
 .wave-4 {
   top: 15%;
-  animation: waveRoll 16s ease-in-out infinite;
+  animation: waveRoll 16s ease-in-out infinite 1.5s;
 }
 
 .wave-5 {
   top: 20%;
-  animation: waveRoll 18s ease-in-out infinite;
+  animation: waveRoll 18s ease-in-out infinite 2s;
 }
 
 @keyframes waveRoll {
-  0% { transform: translateY(0) scale(1.02); }
-  50% { transform: translateY(10px) scale(1); }
-  100% { transform: translateY(0) scale(1.02); }
+  0% { transform: translateY(0) translateX(0); opacity: 0.7; }
+  50% { transform: translateY(15px) translateX(10px); opacity: 0.9; }
+  100% { transform: translateY(0) translateX(0); opacity: 0.7; }
 }
 
 /* Контейнер */
