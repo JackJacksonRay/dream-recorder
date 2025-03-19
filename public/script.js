@@ -38,54 +38,26 @@ const gradients = [
 console.log("Wave paths:", wavePaths);
 console.log("Gradients:", gradients);
 
-// Цвета для градиентов
-const colorSets = [
-  ['#ffb6c1', '#a3d8f4'],
-  ['#a3d8f4', '#d4a5a5'],
-  ['#d4a5a5', '#ffb6c1']
-];
-
-// Функция для генерации нового пути волны
-function generateWavePath(basePath, offset) {
-  console.log("Generating wave path with offset:", offset);
-  const points = basePath.split('C').map((part, index) => {
-    if (index === 0) return part;
-    const [control1, control2, end] = part.split(' ').filter(p => p);
-    const newY = parseFloat(control1.split(',')[1]) + Math.sin(Date.now() / 1000 + offset) * 10;
-    return `${control1.split(',')[0]},${newY} ${control2} ${end}`;
-  });
-  return points.join('C');
+if (wavePaths.every(path => path) && gradients.every(gradient => gradient)) {
+  console.log("Все элементы волн найдены, анимация запущена.");
+} else {
+  console.error("Не удалось найти все элементы волн или градиентов!");
 }
 
-// Функция для изменения цветов
-function updateWaveColors() {
-  gradients.forEach((gradient, index) => {
-    if (!gradient) return; // Проверка на null
-    const hueShift = Math.sin(Date.now() / 3000 + index) * 20;
-    const color1 = colorSets[index][0];
-    const color2 = colorSets[index][1];
-    gradient.innerHTML = `
-      <stop offset="0%" stop-color="${color1}" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="${color2}" stop-opacity="0.6" />
-    `;
-  });
-}
-
-// Функция для анимации волн
+// Базовая анимация волн (без динамического изменения формы пока)
 function animateWaves() {
   wavePaths.forEach((path, index) => {
-    if (!path) return; // Проверка на null
-    path.setAttribute('d', generateWavePath(path.getAttribute('d'), index));
+    const baseY = parseFloat(path.getAttribute('d').split('C')[1].split(',')[1]);
+    const newY = baseY + Math.sin(Date.now() / 1000 + index) * 10;
+    const newPath = path.getAttribute('d').replace(/C[\s\S]*?(\d+,\d+)/, `C${newY}`);
+    path.setAttribute('d', newPath);
   });
-  updateWaveColors();
   requestAnimationFrame(animateWaves);
 }
 
 // Запуск анимации волн
-if (wavePaths.every(path => path) && gradients.every(gradient => gradient)) {
+if (wavePaths.every(path => path)) {
   animateWaves();
-} else {
-  console.error("Не удалось найти все элементы волн или градиентов!");
 }
 
 // [Остальной код для записи остался прежним]
