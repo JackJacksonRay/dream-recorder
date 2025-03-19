@@ -127,9 +127,17 @@ function initWaveParams() {
   }
 }
 
+let lastUpdate = 0;
 function animateWaves() {
+  const now = Date.now();
+  if (now - lastUpdate < 50) { // Обновляем раз в 50 мс (20 FPS)
+    requestAnimationFrame(animateWaves);
+    return;
+  }
+  lastUpdate = now;
+
   try {
-    const time = Date.now() * 0.001;
+    const time = now * 0.0005; // Уменьшаем скорость изменения времени
     const wavePaths = document.querySelectorAll('.wave-path');
     if (wavePaths.length !== waveParams.length) {
       logToInterface(`Ошибка: количество волн (${wavePaths.length}) не совпадает с параметрами (${waveParams.length})`);
@@ -138,7 +146,7 @@ function animateWaves() {
     wavePaths.forEach((path, index) => {
       const param = waveParams[index];
       const noise = perlinNoise(time * param.baseSpeed + param.phase);
-      const amplitude = param.baseAmplitude * (1 + noise);
+      const amplitude = param.baseAmplitude * (0.5 + noise * 0.5); // Уменьшаем влияние шума
       const waveHeight = amplitude * Math.sin(time * param.baseSpeed + param.phase);
       path.setAttribute('d', `M0,${param.offset + waveHeight} Q125,${param.offset - waveHeight} 250,${param.offset + waveHeight} T500,${param.offset + waveHeight} T750,${param.offset + waveHeight} T1000,${param.offset + waveHeight} V200 H0 Z`);
     });
