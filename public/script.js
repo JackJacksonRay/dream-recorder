@@ -46,10 +46,58 @@ setTimeout(() => {
 const waves = document.querySelectorAll('.wave');
 logToInterface(`Найдено волн: ${waves.length}`);
 
+// Инициализация Web Audio API для анализа звука
+async function setupAudioAnalysis(stream) {
+  logToInterface("Инициализация Web Audio API...");
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioContext.createAnalyser();
+  source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  // Функция для обновления волн на основе громкости
+  const waveElements = document.querySelectorAll('.wave');
+  logToInterface(`Найдено волн для анимации: ${waveElements.length}`);
+  if (waveElements.length === 0) {
+    logToInterface("Ошибка: волны не найдены!");
+    return;
+  }
+
+  function updateWaves() {
+    if (!isRecording) {
+      logToInterface("Запись остановлена, прекращаем обновление волн");
+      return;
+    }
+
+    analyser.getByteFrequencyData(dataArray);
+    const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
+    const amplitude = Math.min(avg / 128, 1) * 30; // Масштабируем амплитуду (0-30px)
+    logToInterface(`Громкость: ${avg}, Амплитуда: ${amplitude}`);
+
+    waveElements.forEach((wave, index) => {
+      if (!wave) {
+        logToInterface(`Ошибка: волна не найдена для индекса ${index}`);
+        return;
+      }
+      // Изменяем положение и масштаб волны на основе громкости
+      const translateY = amplitude * (index % 2 === 0 ? 1 : -1); // Чередуем направление
+      const scale = 1 + (amplitude / 100); // Увеличиваем масштаб
+      wave.style.transform = `translateY(${translateY}px) scale(${scale})`;
+    });
+
+    requestAnimationFrame(updateWaves);
+  }
+
+  updateWaves();
+}
+
 // Сброс волн в исходное состояние
 function resetWaves() {
   logToInterface("Сброс волн в исходное состояние...");
   const wavePaths = document.querySelectorAll('.wave-path');
+  const waveElements = document.querySelectorAll('.wave');
   logToInterface(`Найдено волн для сброса: ${wavePaths.length}`);
   wavePaths.forEach((path, index) => {
     if (!path) {
@@ -57,7 +105,15 @@ function resetWaves() {
       return;
     }
     path.setAttribute('d', initialWavePaths[index]);
-    logToInterface(`Волна ${index + 1} сброшена`);
+    logToInterface(`Волна ${index + 1} сброшена (путь)`);
+  });
+  waveElements.forEach((wave, index) => {
+    if (!wave) {
+      logToInterface(`Ошибка: волна не найдена для сброса, индекс ${index}`);
+      return;
+    }
+    wave.style.transform = 'translateY(0) scale(1)';
+    logToInterface(`Волна ${index + 1} сброшена (стиль)`);
   });
 }
 
@@ -76,6 +132,9 @@ document.getElementById('recordButton').addEventListener('click', async () => {
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
     };
+
+    // Инициализация анализа звука
+    await setupAudioAnalysis(stream);
   } catch (error) {
     logToInterface(`Ошибка при доступе к микрофону: ${error.message}`);
     fadeInStatus('Ошибка доступа к микрофону');
@@ -89,7 +148,12 @@ document.getElementById('stopButton').addEventListener('click', () => {
   document.getElementById('recordButton').disabled = false;
   document.getElementById('stopButton').disabled = true;
 
-  // Сброс волн
+  // Остановка Web Audio API и сброс волн
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+    logToInterface("Web Audio API остановлен");
+  }
   resetWaves();
 
   let dots = 0;
