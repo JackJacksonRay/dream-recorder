@@ -21,8 +21,63 @@ setTimeout(() => {
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
-// [Остальной код остался прежним]
+// Динамические волны
+const wavePaths = [
+  document.getElementById('wave-path-1'),
+  document.getElementById('wave-path-2'),
+  document.getElementById('wave-path-3')
+];
 
+const gradients = [
+  document.getElementById('gradient-1'),
+  document.getElementById('gradient-2'),
+  document.getElementById('gradient-3')
+];
+
+// Цвета для градиентов
+const colorSets = [
+  ['#ffb6c1', '#a3d8f4'],
+  ['#a3d8f4', '#d4a5a5'],
+  ['#d4a5a5', '#ffb6c1']
+];
+
+// Функция для генерации нового пути волны
+function generateWavePath(basePath, offset) {
+  const points = basePath.split('C').map((part, index) => {
+    if (index === 0) return part;
+    const [control1, control2, end] = part.split(' ').filter(p => p);
+    const newY = parseFloat(control1.split(',')[1]) + Math.sin(Date.now() / 1000 + offset) * 10;
+    return `${control1.split(',')[0]},${newY} ${control2} ${end}`;
+  });
+  return points.join('C');
+}
+
+// Функция для изменения цветов
+function updateWaveColors() {
+  gradients.forEach((gradient, index) => {
+    const hueShift = Math.sin(Date.now() / 3000 + index) * 20;
+    const color1 = colorSets[index][0];
+    const color2 = colorSets[index][1];
+    gradient.innerHTML = `
+      <stop offset="0%" stop-color="${color1}" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="${color2}" stop-opacity="0.6" />
+    `;
+  });
+}
+
+// Функция для анимации волн
+function animateWaves() {
+  wavePaths.forEach((path, index) => {
+    path.setAttribute('d', generateWavePath(path.getAttribute('d'), index));
+  });
+  updateWaveColors();
+  requestAnimationFrame(animateWaves);
+}
+
+// Запуск анимации волн
+animateWaves();
+
+// [Остальной код для записи остался прежним]
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
   try {
