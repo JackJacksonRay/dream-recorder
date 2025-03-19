@@ -21,45 +21,6 @@ setTimeout(() => {
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
-// Динамические волны
-const wavePaths = [
-  document.getElementById('wave-path-1'),
-  document.getElementById('wave-path-2'),
-  document.getElementById('wave-path-3')
-];
-
-const gradients = [
-  document.getElementById('gradient-1'),
-  document.getElementById('gradient-2'),
-  document.getElementById('gradient-3')
-];
-
-// Проверка, найдены ли элементы
-console.log("Wave paths:", wavePaths);
-console.log("Gradients:", gradients);
-
-if (wavePaths.every(path => path) && gradients.every(gradient => gradient)) {
-  console.log("Все элементы волн найдены, анимация запущена.");
-} else {
-  console.error("Не удалось найти все элементы волн или градиентов!");
-}
-
-// Базовая анимация волн (без динамического изменения формы пока)
-function animateWaves() {
-  wavePaths.forEach((path, index) => {
-    const baseY = parseFloat(path.getAttribute('d').split('C')[1].split(',')[1]);
-    const newY = baseY + Math.sin(Date.now() / 1000 + index) * 10;
-    const newPath = path.getAttribute('d').replace(/C[\s\S]*?(\d+,\d+)/, `C${newY}`);
-    path.setAttribute('d', newPath);
-  });
-  requestAnimationFrame(animateWaves);
-}
-
-// Запуск анимации волн
-if (wavePaths.every(path => path)) {
-  animateWaves();
-}
-
 // [Остальной код для записи остался прежним]
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
