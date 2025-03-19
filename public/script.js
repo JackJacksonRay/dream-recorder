@@ -34,6 +34,10 @@ const gradients = [
   document.getElementById('gradient-3')
 ];
 
+// Проверка, найдены ли элементы
+console.log("Wave paths:", wavePaths);
+console.log("Gradients:", gradients);
+
 // Цвета для градиентов
 const colorSets = [
   ['#ffb6c1', '#a3d8f4'],
@@ -43,6 +47,7 @@ const colorSets = [
 
 // Функция для генерации нового пути волны
 function generateWavePath(basePath, offset) {
+  console.log("Generating wave path with offset:", offset);
   const points = basePath.split('C').map((part, index) => {
     if (index === 0) return part;
     const [control1, control2, end] = part.split(' ').filter(p => p);
@@ -55,6 +60,7 @@ function generateWavePath(basePath, offset) {
 // Функция для изменения цветов
 function updateWaveColors() {
   gradients.forEach((gradient, index) => {
+    if (!gradient) return; // Проверка на null
     const hueShift = Math.sin(Date.now() / 3000 + index) * 20;
     const color1 = colorSets[index][0];
     const color2 = colorSets[index][1];
@@ -68,6 +74,7 @@ function updateWaveColors() {
 // Функция для анимации волн
 function animateWaves() {
   wavePaths.forEach((path, index) => {
+    if (!path) return; // Проверка на null
     path.setAttribute('d', generateWavePath(path.getAttribute('d'), index));
   });
   updateWaveColors();
@@ -75,7 +82,11 @@ function animateWaves() {
 }
 
 // Запуск анимации волн
-animateWaves();
+if (wavePaths.every(path => path) && gradients.every(gradient => gradient)) {
+  animateWaves();
+} else {
+  console.error("Не удалось найти все элементы волн или градиентов!");
+}
 
 // [Остальной код для записи остался прежним]
 document.getElementById('recordButton').addEventListener('click', async () => {
