@@ -6,6 +6,15 @@ let analyser;
 let source;
 let isRecording = false;
 
+// Исходные пути волн (для сброса после записи)
+const initialWavePaths = [
+  "M0,100 Q125,80 250,100 T500,100 T750,100 T1000,100 V200 H0 Z",
+  "M0,110 Q125,90 250,110 T500,110 T750,110 T1000,110 V200 H0 Z",
+  "M0,120 Q125,100 250,120 T500,120 T750,120 T1000,120 V200 H0 Z",
+  "M0,130 Q125,110 250,130 T500,130 T750,130 T1000,130 V200 H0 Z",
+  "M0,140 Q125,120 250,140 T500,140 T750,140 T1000,140 V200 H0 Z"
+];
+
 // Проверка и инициализация Telegram Web App
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready();
@@ -45,7 +54,7 @@ async function setupAudioAnalysis(stream) {
     const amplitude = Math.min(avg / 128, 1) * 50; // Масштабируем амплитуду (0-50)
 
     wavePaths.forEach((path, index) => {
-      const baseY = 100 + index * 20; // Базовая высота волны
+      const baseY = 100 + index * 10; // Базовая высота волны
       const wavePoints = [];
       for (let x = 0; x <= 1000; x += 125) {
         const y = baseY + Math.sin(x / 50 + index) * (20 + amplitude);
@@ -59,6 +68,14 @@ async function setupAudioAnalysis(stream) {
   }
 
   updateWaves();
+}
+
+// Сброс волн в исходное состояние
+function resetWaves() {
+  const wavePaths = document.querySelectorAll('.wave-path');
+  wavePaths.forEach((path, index) => {
+    path.setAttribute('d', initialWavePaths[index]);
+  });
 }
 
 // [Остальной код для записи]
@@ -92,11 +109,12 @@ document.getElementById('stopButton').addEventListener('click', () => {
   document.getElementById('recordButton').disabled = false;
   document.getElementById('stopButton').disabled = true;
 
-  // Остановка Web Audio API
+  // Остановка Web Audio API и сброс волн
   if (audioContext) {
     audioContext.close();
     audioContext = null;
   }
+  resetWaves();
 
   let dots = 0;
   fadeInStatus('Обработка');
