@@ -1,6 +1,10 @@
 let mediaRecorder;
 let audioChunks = [];
 let loadingInterval;
+let audioContext;
+let analyser;
+let source;
+let isRecording = false;
 
 // Проверка и инициализация Telegram Web App
 if (window.Telegram?.WebApp) {
@@ -21,13 +25,50 @@ setTimeout(() => {
   document.querySelector('.container').style.display = 'flex';
 }, 2500);
 
-// [Остальной код для записи остался прежним]
+// Инициализация Web Audio API для анализа звука
+async function setupAudioAnalysis(stream) {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioContext.createAnalyser();
+  source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  // Функция для обновления волн на основе громкости
+  const wavePaths = document.querySelectorAll('.wave-path');
+  function updateWaves() {
+    if (!isRecording) return;
+
+    analyser.getByteFrequencyData(dataArray);
+    const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
+    const amplitude = Math.min(avg / 128, 1) * 50; // Масштабируем амплитуду (0-50)
+
+    wavePaths.forEach((path, index) => {
+      const baseY = 100 + index * 20; // Базовая высота волны
+      const wavePoints = [];
+      for (let x = 0; x <= 1000; x += 125) {
+        const y = baseY + Math.sin(x / 50 + index) * (20 + amplitude);
+        wavePoints.push(`${x},${y}`);
+      }
+      const pathD = `M0,${baseY} Q${wavePoints.join(' Q')} V200 H0 Z`;
+      path.setAttribute('d', pathD);
+    });
+
+    requestAnimationFrame(updateWaves);
+  }
+
+  updateWaves();
+}
+
+// [Остальной код для записи]
 document.getElementById('recordButton').addEventListener('click', async () => {
   console.log('Нажата кнопка "Начать запись"');
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.start();
+    isRecording = true;
     document.getElementById('recordButton').disabled = true;
     document.getElementById('stopButton').disabled = false;
     fadeInStatus('Идёт запись...');
@@ -35,6 +76,9 @@ document.getElementById('recordButton').addEventListener('click', async () => {
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
     };
+
+    // Инициализация анализа звука
+    await setupAudioAnalysis(stream);
   } catch (error) {
     console.error('Ошибка при доступе к микрофону:', error);
     fadeInStatus('Ошибка доступа к микрофону');
@@ -44,8 +88,15 @@ document.getElementById('recordButton').addEventListener('click', async () => {
 document.getElementById('stopButton').addEventListener('click', () => {
   console.log('Нажата кнопка "Остановить запись"');
   mediaRecorder.stop();
+  isRecording = false;
   document.getElementById('recordButton').disabled = false;
   document.getElementById('stopButton').disabled = true;
+
+  // Остановка Web Audio API
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
 
   let dots = 0;
   fadeInStatus('Обработка');
