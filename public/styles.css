@@ -1,3 +1,8 @@
+:root {
+  --amplitude: 10px;
+  --speed: 10s;
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -58,19 +63,14 @@ html, body {
   height: 100px;
   border-radius: 50%;
   background: #fff;
-  animation: pulseGlow 2s ease-in-out infinite, hueShift 5s linear infinite !important;
-  filter: blur(15px) hue-rotate(0deg);
+  animation: pulseGlow 2s ease-in-out infinite;
+  filter: blur(15px);
 }
 
 @keyframes pulseGlow {
   0% { transform: scale(0.8); opacity: 0.6; }
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(0.8); opacity: 0.6; }
-}
-
-@keyframes hueShift {
-  0% { filter: blur(15px) hue-rotate(0deg); }
-  100% { filter: blur(15px) hue-rotate(360deg); }
 }
 
 .loader.hidden {
@@ -94,24 +94,28 @@ html, body {
   width: 200%;
   height: 100%;
   filter: blur(8px) drop-shadow(0 0 10px rgba(0, 198, 255, 0.3));
-  transition: filter 0.1s ease, opacity 0.1s ease;
-  animation: waveMove linear infinite;
+  animation: waveMove var(--speed) linear infinite, waveHeight 3s ease-in-out infinite;
 }
 
-.wave-1 { top: 0; animation-duration: 10s; }
-.wave-2 { top: 3%; animation-duration: 12s; animation-delay: -2s; }
-.wave-3 { top: 6%; animation-duration: 14s; animation-delay: -4s; }
-.wave-4 { top: 9%; animation-duration: 16s; animation-delay: -6s; }
-.wave-5 { top: 12%; animation-duration: 18s; animation-delay: -8s; }
-.wave-6 { top: 15%; animation-duration: 20s; animation-delay: -10s; }
-.wave-7 { top: 18%; animation-duration: 22s; animation-delay: -12s; }
-.wave-8 { top: 21%; animation-duration: 24s; animation-delay: -14s; }
-.wave-9 { top: 24%; animation-duration: 26s; animation-delay: -16s; }
-.wave-10 { top: 27%; animation-duration: 28s; animation-delay: -18s; }
+.wave-1 { top: 0; animation-delay: 0s, 0s; }
+.wave-2 { top: 3%; animation-delay: -2s, -0.5s; }
+.wave-3 { top: 6%; animation-delay: -4s, -1s; }
+.wave-4 { top: 9%; animation-delay: -6s, -1.5s; }
+.wave-5 { top: 12%; animation-delay: -8s, -2s; }
+.wave-6 { top: 15%; animation-delay: -10s, -2.5s; }
+.wave-7 { top: 18%; animation-delay: -12s, -3s; }
+.wave-8 { top: 21%; animation-delay: -14s, -3.5s; }
+.wave-9 { top: 24%; animation-delay: -16s, -4s; }
+.wave-10 { top: 27%; animation-delay: -18s, -4.5s; }
 
 @keyframes waveMove {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+@keyframes waveHeight {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(calc(var(--amplitude) * 1)); }
 }
 
 /* Контейнер */

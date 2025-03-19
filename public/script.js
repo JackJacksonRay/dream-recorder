@@ -1,9 +1,3 @@
-// Упрощённая реализация шума Перлина
-function perlinNoise(x) {
-  const n = Math.sin(x * 12.9898) * 43758.5453;
-  return n - Math.floor(n);
-}
-
 // Глобальные переменные
 let mediaRecorder;
 let audioChunks = [];
@@ -36,6 +30,17 @@ try {
 } catch (error) {
   logToInterface(`Ошибка инициализации Telegram: ${error.message}`);
 }
+
+// Динамическое изменение цвета шарика
+const siriBall = document.getElementById('siriBall');
+function animateSiriBall() {
+  let hue = 0;
+  setInterval(() => {
+    hue = (hue + 1) % 360;
+    siriBall.style.background = `hsl(${hue}, 100%, 50%)`;
+  }, 50);
+}
+animateSiriBall();
 
 // Показ прелоадера
 const loader = document.querySelector('.loader');
@@ -107,56 +112,7 @@ function createWaves() {
   }
 }
 
-// Анимация волн
-const waveParams = [];
-function initWaveParams() {
-  try {
-    const waveCount = window.innerWidth < 480 ? 5 : 10;
-    logToInterface(`Инициализируем параметры для ${waveCount} волн`);
-    for (let i = 0; i < waveCount; i++) {
-      waveParams.push({
-        baseAmplitude: Math.random() * 10 + 5,
-        baseSpeed: Math.random() * 0.5 + 0.5,
-        phase: Math.random() * Math.PI * 2,
-        offset: 100 + (i + 1) * 5,
-      });
-    }
-    logToInterface("Параметры волн инициализированы");
-  } catch (error) {
-    logToInterface(`Ошибка при инициализации параметров волн: ${error.message}`);
-  }
-}
-
-let lastUpdate = 0;
-function animateWaves() {
-  const now = Date.now();
-  if (now - lastUpdate < 50) { // Обновляем раз в 50 мс (20 FPS)
-    requestAnimationFrame(animateWaves);
-    return;
-  }
-  lastUpdate = now;
-
-  try {
-    const time = now * 0.0005; // Уменьшаем скорость изменения времени
-    const wavePaths = document.querySelectorAll('.wave-path');
-    if (wavePaths.length !== waveParams.length) {
-      logToInterface(`Ошибка: количество волн (${wavePaths.length}) не совпадает с параметрами (${waveParams.length})`);
-      return;
-    }
-    wavePaths.forEach((path, index) => {
-      const param = waveParams[index];
-      const noise = perlinNoise(time * param.baseSpeed + param.phase);
-      const amplitude = param.baseAmplitude * (0.5 + noise * 0.5); // Уменьшаем влияние шума
-      const waveHeight = amplitude * Math.sin(time * param.baseSpeed + param.phase);
-      path.setAttribute('d', `M0,${param.offset + waveHeight} Q125,${param.offset - waveHeight} 250,${param.offset + waveHeight} T500,${param.offset + waveHeight} T750,${param.offset + waveHeight} T1000,${param.offset + waveHeight} V200 H0 Z`);
-    });
-    requestAnimationFrame(animateWaves);
-  } catch (error) {
-    logToInterface(`Ошибка при анимации волн: ${error.message}`);
-  }
-}
-
-// Анализ звука
+// Анализ звука и изменение CSS-переменных
 async function setupAudioAnalysis(stream) {
   try {
     logToInterface("Инициализация Web Audio API...");
@@ -171,6 +127,8 @@ async function setupAudioAnalysis(stream) {
     function updateWaves() {
       if (!isRecording) {
         logToInterface("Запись остановлена, прекращаем обновление волн");
+        document.documentElement.style.setProperty('--amplitude', '10px');
+        document.documentElement.style.setProperty('--speed', '10s');
         return;
       }
 
@@ -179,10 +137,9 @@ async function setupAudioAnalysis(stream) {
       const amplitude = Math.min(avg / 128, 1);
       logToInterface(`Громкость: ${avg}, Амплитуда: ${amplitude}`);
 
-      waveParams.forEach(param => {
-        param.baseSpeed = (Math.random() * 0.5 + 0.5) * (1 + amplitude * 2);
-        param.baseAmplitude = (Math.random() * 10 + 5) * (1 + amplitude);
-      });
+      // Изменяем CSS-переменные
+      document.documentElement.style.setProperty('--amplitude', `${10 + amplitude * 20}px`);
+      document.documentElement.style.setProperty('--speed', `${10 - amplitude * 5}s`);
 
       requestAnimationFrame(updateWaves);
     }
@@ -197,10 +154,8 @@ async function setupAudioAnalysis(stream) {
 function resetWaves() {
   try {
     logToInterface("Сброс волн в исходное состояние...");
-    waveParams.forEach(param => {
-      param.baseSpeed = Math.random() * 0.5 + 0.5;
-      param.baseAmplitude = Math.random() * 10 + 5;
-    });
+    document.documentElement.style.setProperty('--amplitude', '10px');
+    document.documentElement.style.setProperty('--speed', '10s');
   } catch (error) {
     logToInterface(`Ошибка при сбросе волн: ${error.message}`);
   }
@@ -320,8 +275,6 @@ function fadeInStatus(text) {
 // Инициализация
 try {
   createWaves();
-  initWaveParams();
-  animateWaves();
   logToInterface("Инициализация завершена");
 } catch (error) {
   logToInterface(`Ошибка при инициализации: ${error.message}`);
