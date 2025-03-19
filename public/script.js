@@ -8,11 +8,16 @@ let isRecording = false;
 
 // Исходные пути волн (для сброса после записи)
 const initialWavePaths = [
-  "M0,100 Q125,80 250,100 T500,100 T750,100 T1000,100 V200 H0 Z",
-  "M0,110 Q125,90 250,110 T500,110 T750,110 T1000,110 V200 H0 Z",
-  "M0,120 Q125,100 250,120 T500,120 T750,120 T1000,120 V200 H0 Z",
-  "M0,130 Q125,110 250,130 T500,130 T750,130 T1000,130 V200 H0 Z",
-  "M0,140 Q125,120 250,140 T500,140 T750,140 T1000,140 V200 H0 Z"
+  "M0,100 Q125,85 250,100 T500,100 T750,100 T1000,100 V200 H0 Z",
+  "M0,105 Q125,90 250,105 T500,105 T750,105 T1000,105 V200 H0 Z",
+  "M0,110 Q125,95 250,110 T500,110 T750,110 T1000,110 V200 H0 Z",
+  "M0,115 Q125,100 250,115 T500,115 T750,115 T1000,115 V200 H0 Z",
+  "M0,120 Q125,105 250,120 T500,120 T750,120 T1000,120 V200 H0 Z",
+  "M0,125 Q125,110 250,125 T500,125 T750,125 T1000,125 V200 H0 Z",
+  "M0,130 Q125,115 250,130 T500,130 T750,130 T1000,130 V200 H0 Z",
+  "M0,135 Q125,120 250,135 T500,135 T750,135 T1000,135 V200 H0 Z",
+  "M0,140 Q125,125 250,140 T500,140 T750,140 T1000,140 V200 H0 Z",
+  "M0,145 Q125,130 250,145 T500,145 T750,145 T1000,145 V200 H0 Z"
 ];
 
 // Функция для вывода логов в интерфейс
@@ -73,7 +78,7 @@ async function setupAudioAnalysis(stream) {
 
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
-    const amplitude = Math.min(avg / 128, 1) * 30; // Масштабируем амплитуду (0-30px)
+    const amplitude = Math.min(avg / 128, 1) * 50; // Увеличиваем амплитуду до 50px
     logToInterface(`Громкость: ${avg}, Амплитуда: ${amplitude}`);
 
     waveElements.forEach((wave, index) => {
@@ -83,8 +88,9 @@ async function setupAudioAnalysis(stream) {
       }
       // Изменяем положение и масштаб волны на основе громкости
       const translateY = amplitude * (index % 2 === 0 ? 1 : -1); // Чередуем направление
-      const scale = 1 + (amplitude / 100); // Увеличиваем масштаб
+      const scale = 1 + (amplitude / 50); // Увеличиваем масштаб до 2
       wave.style.transform = `translateY(${translateY}px) scale(${scale})`;
+      logToInterface(`Волна ${index + 1}: translateY(${translateY}px) scale(${scale})`);
     });
 
     requestAnimationFrame(updateWaves);
