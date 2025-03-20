@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
   <title>Запись мыслей</title>
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
 </head>
 <body>
   <!-- Прелоадер -->
@@ -25,6 +28,11 @@
   <!-- Основной контейнер приложения, изначально скрыт -->
   <div class="container hidden">
     <h1>Запись мыслей</h1>
+
+    <!-- Таймер записи -->
+    <p id="timer" class="timer">00:00:00</p>
+
+    <!-- Кнопки -->
     <div class="button-group">
       <button id="recordButton" class="btn btn-record">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -42,11 +50,19 @@
         Остановить
       </button>
     </div>
+
+    <!-- Статус -->
     <p id="status">Нажмите "Начать", чтобы начать запись</p>
+
+    <!-- Прогресс-бар -->
     <div id="progressBar" class="progress-bar"></div>
+
+    <!-- Лог для отладки -->
     <p id="debugLog" class="debug-log"></p>
   </div>
 
   <script src="/script.js"></script>
 </body>
 </html>
+
+
