@@ -2,6 +2,7 @@
 
 (() => {
   // Глобальные переменные
+  let telegramUserId = null; // будет установлено после инициализации Telegram WebApp
   let mediaRecorder;
   let audioChunks = [];
   let audioContext;
@@ -33,27 +34,25 @@
     console.log(message);
   }
 
-  // Функция получения Telegram User ID в момент вызова
-  function getTelegramUserId() {
-    if (
-      window.Telegram &&
-      window.Telegram.WebApp &&
-      window.Telegram.WebApp.initDataUnsafe &&
-      window.Telegram.WebApp.initDataUnsafe.user &&
-      window.Telegram.WebApp.initDataUnsafe.user.id
-    ) {
-      return window.Telegram.WebApp.initDataUnsafe.user.id;
-    }
-    return null;
-  }
-
-  // Инициализация Telegram Web App
+  // Инициализация Telegram Web App и установка telegramUserId после ready()
   function initTelegram() {
     try {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
-        setTimeout(() => window.Telegram.WebApp.expand(), 500);
+        setTimeout(() => {
+          window.Telegram.WebApp.expand();
+          if (
+            window.Telegram.WebApp.initDataUnsafe &&
+            window.Telegram.WebApp.initDataUnsafe.user &&
+            window.Telegram.WebApp.initDataUnsafe.user.id
+          ) {
+            telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            console.log("Telegram User ID установлен:", telegramUserId);
+          } else {
+            console.warn("Данные пользователя не найдены в initDataUnsafe");
+          }
+        }, 500);
         logToInterface("Telegram Web App инициализирован");
       } else {
         logToInterface("Telegram Web App не найден");
@@ -187,7 +186,7 @@
     recordStartTime = Date.now();
     const timerElement = document.getElementById("timer");
     timerInterval = setInterval(() => {
-      const elapsed = Date.now() - recordStartTime; // в мс
+      const elapsed = Date.now() - recordStartTime;
       const hours = Math.floor(elapsed / 3600000);
       const minutes = Math.floor((elapsed % 3600000) / 60000);
       const seconds = Math.floor((elapsed % 60000) / 1000);
@@ -271,11 +270,10 @@
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
 
-        // Получаем актуальный Telegram User ID в момент отправки
-        const currentUserId = getTelegramUserId();
-        if (currentUserId) {
-          formData.append("userId", currentUserId);
-          console.log("Передан userId:", currentUserId);
+        // Используем глобально установленный telegramUserId
+        if (telegramUserId) {
+          formData.append("userId", telegramUserId);
+          console.log("Передан userId:", telegramUserId);
         } else {
           console.warn("Telegram User ID не найден, отправляем в общий канал");
         }
@@ -318,3 +316,4 @@
 
   window.addEventListener("DOMContentLoaded", initApp);
 })();
+
