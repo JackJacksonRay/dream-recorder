@@ -24,20 +24,27 @@
     "#52a2c6",
   ];
 
-  // Получаем Telegram User ID из Telegram WebApp
-  const telegramUserId =
-    window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user
-      ? window.Telegram.WebApp.initDataUnsafe.user.id
-      : null;
-  console.log("Telegram User ID:", telegramUserId);
-
-  // Функция логирования
+  // Функция для логирования
   function logToInterface(message) {
     const debugLog = document.getElementById("debugLog");
     if (debugLog) {
       debugLog.textContent = message;
     }
     console.log(message);
+  }
+
+  // Функция получения Telegram User ID в момент вызова
+  function getTelegramUserId() {
+    if (
+      window.Telegram &&
+      window.Telegram.WebApp &&
+      window.Telegram.WebApp.initDataUnsafe &&
+      window.Telegram.WebApp.initDataUnsafe.user &&
+      window.Telegram.WebApp.initDataUnsafe.user.id
+    ) {
+      return window.Telegram.WebApp.initDataUnsafe.user.id;
+    }
+    return null;
   }
 
   // Инициализация Telegram Web App
@@ -263,11 +270,16 @@
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
-        // Передаем Telegram User ID, если он есть
-        if (telegramUserId) {
-          formData.append("userId", telegramUserId);
-          console.log("Передан userId:", telegramUserId);
+
+        // Получаем актуальный Telegram User ID в момент отправки
+        const currentUserId = getTelegramUserId();
+        if (currentUserId) {
+          formData.append("userId", currentUserId);
+          console.log("Передан userId:", currentUserId);
+        } else {
+          console.warn("Telegram User ID не найден, отправляем в общий канал");
         }
+
         try {
           const response = await fetch("/transcribe", {
             method: "POST",
@@ -306,4 +318,3 @@
 
   window.addEventListener("DOMContentLoaded", initApp);
 })();
-
