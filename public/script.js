@@ -8,10 +8,8 @@
   let analyser;
   let source;
   let isRecording = false;
-
   let recordStartTime = 0;
   let timerInterval = null;
-
   const waveContainer = document.querySelector(".wave-container");
   const colors = [
     "#a3d8f4",
@@ -25,6 +23,9 @@
     "#5ba8cb",
     "#52a2c6",
   ];
+
+  // Получаем Telegram ID пользователя из WebApp
+  const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
   // Функция для логирования
   function logToInterface(message) {
@@ -138,7 +139,7 @@
         const amplitude = Math.min(avg / 128, 1);
         logToInterface(`Громкость: ${avg.toFixed(2)}, Амплитуда: ${amplitude.toFixed(2)}`);
 
-        // Меняем CSS-переменные, чтобы волны "дышали" в такт громкости
+        // Меняем CSS-переменные для анимации волн в такт звуку
         document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 20}px`);
         document.documentElement.style.setProperty("--speed", `${10 - amplitude * 5}s`);
 
@@ -172,21 +173,18 @@
     }, 10);
   }
 
-  // Функции для таймера
+  // Таймер записи
   function startTimer() {
     recordStartTime = Date.now();
     const timerElement = document.getElementById("timer");
 
     timerInterval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - recordStartTime; // в мс
+      const elapsed = Date.now() - recordStartTime; // в мс
       const hours = Math.floor(elapsed / 3600000);
       const minutes = Math.floor((elapsed % 3600000) / 60000);
       const seconds = Math.floor((elapsed % 60000) / 1000);
 
-      timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(
-        minutes
-      ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }, 1000);
   }
 
@@ -241,10 +239,8 @@
       recordButton.disabled = false;
       stopButton.disabled = true;
 
-      // Останавливаем таймер
       stopTimer();
 
-      // Закрываем Web Audio API
       if (audioContext) {
         audioContext.close();
         audioContext = null;
@@ -273,6 +269,10 @@
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
+        // Передаем Telegram User ID вместе с аудио
+        if (telegramUserId) {
+          formData.append("userId", telegramUserId);
+        }
 
         try {
           const response = await fetch("/transcribe", {
@@ -315,3 +315,4 @@
 
   window.addEventListener("DOMContentLoaded", initApp);
 })();
+
