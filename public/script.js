@@ -67,12 +67,14 @@
     const container = document.querySelector(".container");
     if (loader && container) {
       if (show) {
-        loader.classList.remove("hidden");
-        container.classList.add("hidden");
+        loader.style.display = "block";
+        container.style.display = "none";
       } else {
-        loader.classList.add("hidden");
-        container.classList.remove("hidden");
+        loader.style.display = "none";
+        container.style.display = "block";
       }
+    } else {
+      console.error("Элементы прелоадера или контейнера не найдены");
     }
   }
 
@@ -273,6 +275,7 @@
           console.log("Передан userId:", telegramUserId);
         } else {
           console.warn("Telegram User ID не найден, отправляем в общий канал");
+          formData.append("userId", "default_channel_id"); // Замени на свой ID
         }
 
         try {
@@ -301,11 +304,11 @@
 
   // Инициализация приложения
   async function initApp() {
-    toggleLoader(true);
+    toggleLoader(true); // Показываем прелоадер
     await getTelegramUserId(); // Дожидаемся получения userId
     createWaves();
     initRecordHandlers();
-    toggleLoader(false);
+    toggleLoader(false); // Скрываем прелоадер
     logToInterface("Инициализация завершена");
   }
 
