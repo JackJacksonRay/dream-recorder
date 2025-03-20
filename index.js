@@ -7,7 +7,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Чтение переменных окружения (на Render задаём их в настройках сервиса)
+// Чтение переменных окружения (на Render задаются в настройках сервиса)
 const BOT_TOKEN = process.env.BOT_TOKEN; // Токен от @BotFather
 const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // API Key от AssemblyAI
 // Если в запросе передан userId, будем отправлять сообщение пользователю, иначе – в общий канал
@@ -20,15 +20,13 @@ if (!BOT_TOKEN || !ASSEMBLYAI_API_KEY) {
 
 const bot = new TelegramBot(BOT_TOKEN);
 
-// Middleware
+// Middleware для файлов и для обработки полей формы
 app.use(
   fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // Ограничение ~10MB
   })
 );
 app.use(express.static("public"));
-
-// Для чтения дополнительных полей, кроме файлов
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -41,8 +39,9 @@ app.post("/transcribe", async (req, res) => {
   const audio = req.files.audio;
   console.log("Получен аудиофайл:", audio.name);
 
-  // Если передан userId из клиента, используем его
+  // Читаем userId из полей формы
   const userId = req.body.userId;
+  console.log("Получен userId:", userId);
 
   try {
     // 1. Загрузка аудио на AssemblyAI
@@ -73,7 +72,7 @@ app.post("/transcribe", async (req, res) => {
     const transcriptId = transcribeResponse.data.id;
     const resultUrl = `https://api.assemblyai.com/v2/transcript/${transcriptId}`;
 
-    // Функция для опроса статуса
+    // Функция для опроса статуса транскрипции
     async function pollTranscriptStatus() {
       try {
         const resultResponse = await axios.get(resultUrl, {
@@ -106,8 +105,6 @@ app.post("/transcribe", async (req, res) => {
     const now = new Date();
     const dateTime = now.toLocaleString("ru-RU");
     const message = `${dateTime}\n${text}`;
-
-    // Если передан userId, отправляем лично пользователю, иначе в общий чат
     const targetChat = userId || DEFAULT_CHAT_ID;
     bot.sendMessage(targetChat, message).catch((err) => {
       console.error("Ошибка отправки в Telegram:", err.message);

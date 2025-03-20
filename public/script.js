@@ -24,10 +24,14 @@
     "#52a2c6",
   ];
 
-  // Получаем Telegram ID пользователя из WebApp
-  const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  // Получаем Telegram User ID из Telegram WebApp
+  const telegramUserId =
+    window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user
+      ? window.Telegram.WebApp.initDataUnsafe.user.id
+      : null;
+  console.log("Telegram User ID:", telegramUserId);
 
-  // Функция для логирования
+  // Функция логирования
   function logToInterface(message) {
     const debugLog = document.getElementById("debugLog");
     if (debugLog) {
@@ -133,19 +137,17 @@
           resetWaves();
           return;
         }
-
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
         const amplitude = Math.min(avg / 128, 1);
         logToInterface(`Громкость: ${avg.toFixed(2)}, Амплитуда: ${amplitude.toFixed(2)}`);
 
-        // Меняем CSS-переменные для анимации волн в такт звуку
+        // Изменяем CSS-переменные для анимации волн в такт звуку
         document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 20}px`);
         document.documentElement.style.setProperty("--speed", `${10 - amplitude * 5}s`);
 
         requestAnimationFrame(updateWaves);
       }
-
       updateWaves();
     } catch (error) {
       logToInterface(`Ошибка Web Audio API: ${error.message}`);
@@ -177,13 +179,11 @@
   function startTimer() {
     recordStartTime = Date.now();
     const timerElement = document.getElementById("timer");
-
     timerInterval = setInterval(() => {
       const elapsed = Date.now() - recordStartTime; // в мс
       const hours = Math.floor(elapsed / 3600000);
       const minutes = Math.floor((elapsed % 3600000) / 60000);
       const seconds = Math.floor((elapsed % 60000) / 1000);
-
       timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }, 1000);
   }
@@ -198,7 +198,6 @@
   function initRecordHandlers() {
     const recordButton = document.getElementById("recordButton");
     const stopButton = document.getElementById("stopButton");
-
     if (!recordButton || !stopButton) {
       logToInterface("Ошибка: кнопки не найдены");
       return;
@@ -213,15 +212,12 @@
         isRecording = true;
         recordButton.disabled = true;
         stopButton.disabled = false;
-
         fadeInStatus("Идёт запись...");
         document.getElementById("progressBar").style.display = "none";
         audioChunks = [];
-
         mediaRecorder.ondataavailable = (event) => {
           audioChunks.push(event.data);
         };
-
         startTimer();
         await setupAudioAnalysis(stream);
       } catch (error) {
@@ -238,9 +234,7 @@
       isRecording = false;
       recordButton.disabled = false;
       stopButton.disabled = true;
-
       stopTimer();
-
       if (audioContext) {
         audioContext.close();
         audioContext = null;
@@ -269,18 +263,17 @@
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
-        // Передаем Telegram User ID вместе с аудио
+        // Передаем Telegram User ID, если он есть
         if (telegramUserId) {
           formData.append("userId", telegramUserId);
+          console.log("Передан userId:", telegramUserId);
         }
-
         try {
           const response = await fetch("/transcribe", {
             method: "POST",
             body: formData,
           });
           const result = await response.json();
-
           clearInterval(loadingInterval);
           clearInterval(progressInterval);
           progressBar.style.width = "100%";
@@ -299,17 +292,15 @@
     });
   }
 
-  // Инициализация всего приложения
+  // Инициализация приложения
   function initApp() {
     initTelegram();
     createWaves();
     initRecordHandlers();
-
     // Скрываем прелоадер через 2.5 секунды
     setTimeout(() => {
       toggleLoader(false);
     }, 2500);
-
     logToInterface("Инициализация завершена");
   }
 
