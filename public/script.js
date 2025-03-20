@@ -2,7 +2,7 @@
 
 (() => {
   // Глобальные переменные
-  let telegramUserId = null; // будет установлено после инициализации Telegram WebApp
+  let telegramUserId = null;
   let mediaRecorder;
   let audioChunks = [];
   let audioContext;
@@ -34,14 +34,13 @@
     console.log(message);
   }
 
-  // Инициализация Telegram Web App и установка telegramUserId после ready()
-  function initTelegram() {
-    try {
+  // Асинхронное получение telegramUserId
+  async function getTelegramUserId() {
+    return new Promise((resolve) => {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
-        setTimeout(() => {
-          window.Telegram.WebApp.expand();
+        const checkUserId = () => {
           if (
             window.Telegram.WebApp.initDataUnsafe &&
             window.Telegram.WebApp.initDataUnsafe.user &&
@@ -49,20 +48,20 @@
           ) {
             telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
             console.log("Telegram User ID установлен:", telegramUserId);
+            resolve(telegramUserId);
           } else {
-            console.warn("Данные пользователя не найдены в initDataUnsafe");
+            setTimeout(checkUserId, 100); // Проверяем каждые 100 мс
           }
-        }, 500);
-        logToInterface("Telegram Web App инициализирован");
+        };
+        checkUserId();
       } else {
-        logToInterface("Telegram Web App не найден");
+        console.warn("Telegram Web App не найден");
+        resolve(null);
       }
-    } catch (error) {
-      logToInterface(`Ошибка инициализации Telegram: ${error.message}`);
-    }
+    });
   }
 
-  // Управление отображением прелоадера и контейнера
+  // Управление прелоадером
   function toggleLoader(show) {
     const loader = document.querySelector(".loader");
     const container = document.querySelector(".container");
@@ -148,7 +147,6 @@
         const amplitude = Math.min(avg / 128, 1);
         logToInterface(`Громкость: ${avg.toFixed(2)}, Амплитуда: ${amplitude.toFixed(2)}`);
 
-        // Изменяем CSS-переменные для анимации волн в такт звуку
         document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 20}px`);
         document.documentElement.style.setProperty("--speed", `${10 - amplitude * 5}s`);
 
@@ -160,7 +158,7 @@
     }
   }
 
-  // Сброс значений волн до исходных
+  // Сброс значений волн
   function resetWaves() {
     document.documentElement.style.setProperty("--amplitude", "10px");
     document.documentElement.style.setProperty("--speed", "10s");
@@ -270,7 +268,6 @@
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
 
-        // Используем глобально установленный telegramUserId
         if (telegramUserId) {
           formData.append("userId", telegramUserId);
           console.log("Передан userId:", telegramUserId);
@@ -303,17 +300,14 @@
   }
 
   // Инициализация приложения
-  function initApp() {
-    initTelegram();
+  async function initApp() {
+    toggleLoader(true);
+    await getTelegramUserId(); // Дожидаемся получения userId
     createWaves();
     initRecordHandlers();
-    // Скрываем прелоадер через 2.5 секунды
-    setTimeout(() => {
-      toggleLoader(false);
-    }, 2500);
+    toggleLoader(false);
     logToInterface("Инициализация завершена");
   }
 
   window.addEventListener("DOMContentLoaded", initApp);
 })();
-
