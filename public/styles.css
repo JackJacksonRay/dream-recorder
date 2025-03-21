@@ -57,15 +57,9 @@ body {
   animation: fadeInUp 0.5s forwards;
 }
 
-.loader-text span:nth-child(1) {
-  animation-delay: 0s;
-}
-.loader-text span:nth-child(2) {
-  animation-delay: 0.3s;
-}
-.loader-text span:nth-child(3) {
-  animation-delay: 0.6s;
-}
+.loader-text span:nth-child(1) { animation-delay: 0s; }
+.loader-text span:nth-child(2) { animation-delay: 0.3s; }
+.loader-text span:nth-child(3) { animation-delay: 0.6s; }
 
 @keyframes fadeInUp {
   0% { opacity: 0; transform: translateY(20px); }
@@ -112,7 +106,7 @@ body {
   z-index: 0;
 }
 
-/* Волны – увеличено количество и интенсивность анимаций */
+/* Волны – увеличенное количество и интенсивность анимаций */
 .wave {
   position: absolute;
   width: 220%;
