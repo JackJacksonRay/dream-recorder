@@ -6,24 +6,23 @@ const TelegramBot = require("node-telegram-bot-api");
 const multer = require("multer");
 const fs = require("fs");
 
-// Настраиваем multer для сохранения файлов во временную папку
+// Настраиваем multer для временного хранения файлов
 const upload = multer({ dest: "uploads/" });
 const app = express();
 
 // Чтение переменных окружения (на Render задаются в настройках сервиса)
 const token = process.env.BOT_TOKEN;
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Если интегрируешь AssemblyAI, сюда подставь свой ключ
-// Мы не используем fallback – если userId отсутствует, возвращаем ошибку.
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Здесь можно интегрировать AssemblyAI
 if (!token || !ASSEMBLYAI_API_KEY) {
-  console.error("Ошибка: BOT_TOKEN или ASSEMBLYAI_API_KEY не заданы в переменных окружения!");
+  console.error("Ошибка: BOT_TOKEN или ASSEMBLYAI_API_KEY не заданы!");
   process.exit(1);
 }
 
 const bot = new TelegramBot(token, { polling: false });
 
-// Функция-заглушка для транскрибации (замени на реальную логику, например, вызов AssemblyAI)
+// Функция-заглушка для транскрибации (замените на реальную интеграцию)
 function transcribeAudio(filePath) {
-  // Здесь должна быть твоя интеграция AssemblyAI (например, HTTP-запрос с использованием axios)
+  // Здесь должна быть ваша логика транскрибации (например, вызов AssemblyAI API)
   return "Это пример транскрибированного текста";
 }
 
@@ -34,18 +33,17 @@ app.use(express.static("public"));
 
 // Эндпоинт для транскрипции аудио
 app.post("/transcribe", upload.single("audio"), (req, res) => {
-  const audioFile = req.file; // Файл, загруженный через multer
+  const audioFile = req.file;
   const userId = req.body.userId; // Telegram User ID, переданный из клиента
 
   console.log("Получен аудиофайл:", audioFile?.originalname);
   console.log("Получен userId:", userId);
 
-  // Если нет файла или userId, возвращаем ошибку
+  // Если файла или userId нет, возвращаем ошибку
   if (!audioFile || !userId || userId.trim() === "") {
     return res.status(400).json({ error: "Аудиофайл или Telegram User ID отсутствуют. Убедитесь, что вы нажали «Start» в чате с ботом." });
   }
 
-  // Транскрибируем аудио (здесь интегрируй AssemblyAI, если нужно)
   const transcribedText = transcribeAudio(audioFile.path);
   const now = new Date();
   const dateTime = now.toLocaleString("ru-RU");
@@ -55,7 +53,6 @@ app.post("/transcribe", upload.single("audio"), (req, res) => {
   bot.sendMessage(userId, message)
     .then(() => {
       console.log(`Сообщение отправлено пользователю ${userId}`);
-      // Удаляем временный файл после обработки
       fs.unlink(audioFile.path, (err) => {
         if (err) console.error("Ошибка удаления файла:", err);
       });

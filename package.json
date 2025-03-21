@@ -1,7 +1,7 @@
 {
   "name": "dream-recorder",
   "version": "1.0.0",
-  "description": "Telegram mini app для записи и транскрипции голоса",
+  "description": "Telegram Mini App для записи и транскрипции голоса",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

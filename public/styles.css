@@ -1,10 +1,10 @@
 :root {
-  /* Переменные для управления волнами */
+  /* Переменные для волн */
   --amplitude: 10px;
   --speed: 10s;
 }
 
-/* Базовые сбросы */
+/* Базовые стили */
 html,
 body {
   height: 100%;
@@ -68,17 +68,11 @@ body {
 }
 
 @keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-/* Шарик с градиентной анимацией */
+/* Шарик с интенсивной градиентной анимацией */
 .siri-ball {
   width: 100px;
   height: 100px;
@@ -95,14 +89,12 @@ body {
   filter: blur(12px);
 }
 
-/* Плавная смена градиента */
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* Пульсация */
 @keyframes pulseGlow {
   0% { transform: scale(0.8); opacity: 0.7; }
   50% { transform: scale(1.2); opacity: 1; }
@@ -120,7 +112,7 @@ body {
   z-index: 0;
 }
 
-/* Волны – интенсивные анимации с разной скоростью и оттенками */
+/* Волны – увеличено количество и интенсивность анимаций */
 .wave {
   position: absolute;
   width: 220%;
@@ -129,13 +121,11 @@ body {
   animation: waveMove var(--speed) linear infinite, waveHeight 3.5s ease-in-out infinite;
 }
 
-/* Горизонтальное движение волн */
 @keyframes waveMove {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
 }
 
-/* Вертикальное колебание волн с усиленной амплитудой */
 @keyframes waveHeight {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(calc(var(--amplitude) * 1.5)); }
