@@ -1,71 +1,79 @@
-"use strict";
+require('dotenv').config();
+const express = require('express');
+const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
+const fileUpload = require('express-fileupload');
+const path = require('path');
 
-require("dotenv").config();
-const express = require("express");
-const TelegramBot = require("node-telegram-bot-api");
-const multer = require("multer");
-const fs = require("fs");
-
-// Настраиваем multer для временного хранения файлов
-const upload = multer({ dest: "uploads/" });
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Чтение переменных окружения (на Render задаются в настройках)
-const token = process.env.BOT_TOKEN;
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Если планируешь интегрировать AssemblyAI
-if (!token || !ASSEMBLYAI_API_KEY) {
-  console.error("Ошибка: BOT_TOKEN или ASSEMBLYAI_API_KEY не заданы!");
-  process.exit(1);
-}
+// Инициализация бота
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+app.use(fileUpload());
+app.use(express.static('public'));
 
-const bot = new TelegramBot(token, { polling: false });
+// Конфигурация AssemblyAI
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+const UPLOAD_URL = 'https://api.assemblyai.com/v2/upload';
+const TRANSCRIPT_URL = 'https://api.assemblyai.com/v2/transcript';
 
-// Функция-заглушка для транскрибации (замени на реальную интеграцию)
-function transcribeAudio(filePath) {
-  // Здесь должна быть интеграция с AssemblyAI API или другой сервис транскрипции
-  return "Это пример транскрибированного текста";
-}
+// Обработчик для транскрибации
+app.post('/transcribe', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const audioFile = req.files.audio;
 
-// Middleware для обработки form-data
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static("public"));
+    if (!userId || !audioFile) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
 
-// Эндпоинт для транскрипции аудио
-app.post("/transcribe", upload.single("audio"), (req, res) => {
-  const audioFile = req.file;
-  const userId = req.body.userId; // Telegram User ID, переданный из клиента
-
-  console.log("Получен аудиофайл:", audioFile?.originalname);
-  console.log("Получен userId:", userId);
-
-  // Если файл или userId отсутствуют, возвращаем ошибку
-  if (!audioFile || !userId || userId.trim() === "") {
-    return res.status(400).json({ error: "Аудиофайл или Telegram User ID отсутствуют. Убедитесь, что вы нажали «Start» в чате с ботом." });
-  }
-
-  const transcribedText = transcribeAudio(audioFile.path);
-  const now = new Date();
-  const dateTime = now.toLocaleString("ru-RU");
-  const message = `${dateTime}\n${transcribedText}`;
-
-  // Отправляем сообщение пользователю через Telegram
-  bot.sendMessage(userId, message)
-    .then(() => {
-      console.log(`Сообщение отправлено пользователю ${userId}`);
-      fs.unlink(audioFile.path, (err) => {
-        if (err) console.error("Ошибка удаления файла:", err);
-      });
-      res.json({ text: transcribedText });
-    })
-    .catch((error) => {
-      console.error(`Ошибка отправки пользователю ${userId}:`, error);
-      res.status(500).json({ error: "Ошибка отправки сообщения" });
+    // Шаг 1: Загрузка аудио в AssemblyAI
+    const uploadResponse = await axios.post(UPLOAD_URL, audioFile.data, {
+      headers: {
+        'authorization': ASSEMBLYAI_API_KEY,
+        'content-type': 'audio/webm'
+      }
     });
+
+    // Шаг 2: Создание транскрипции
+    const transcriptResponse = await axios.post(TRANSCRIPT_URL, {
+      audio_url: uploadResponse.data.upload_url,
+      language_code: 'ru'
+    }, {
+      headers: { 'authorization': ASSEMBLYAI_API_KEY }
+    });
+
+    // Шаг 3: Ожидание завершения транскрибации
+    let transcriptResult;
+    while (true) {
+      transcriptResult = await axios.get(`${TRANSCRIPT_URL}/${transcriptResponse.data.id}`, {
+        headers: { 'authorization': ASSEMBLYAI_API_KEY }
+      });
+      
+      if (transcriptResult.data.status === 'completed') break;
+      if (transcriptResult.data.status === 'error') throw new Error('Transcription failed');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // Шаг 4: Отправка результата пользователю
+    const message = `📅 ${new Date().toLocaleString('ru-RU')}\n${transcriptResult.data.text}`;
+    await bot.sendMessage(userId, message);
+
+    res.json({ success: true, text: transcriptResult.data.text });
+
+  } catch (error) {
+    console.error('Transcription error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Обработчик для главной страницы
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Запуск сервера
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

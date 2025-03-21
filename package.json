@@ -1,20 +1,16 @@
 {
-  "name": "dream-recorder",
+  "name": "voice-notes",
   "version": "1.0.0",
-  "description": "Telegram Mini App для записи и транскрипции голоса",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
-    "multer": "^1.4.5-lts.1",
     "node-telegram-bot-api": "^0.63.0"
   }
 }
