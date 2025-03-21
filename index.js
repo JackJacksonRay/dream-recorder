@@ -1,6 +1,9 @@
 // Загружаем переменные окружения
 require('dotenv').config();
 
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const multer = require('multer');
