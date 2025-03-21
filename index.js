@@ -8,19 +8,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Исправление конфликта поллинга
 const bot = new TelegramBot(process.env.BOT_TOKEN);
 app.use(fileUpload());
 app.use(express.static('public'));
-
-// Конфигурация AssemblyAI
-const ASSEMBLY_API_KEY = process.env.ASSEMBLYAI_API_KEY;
-
-// Вебхук для бота
-app.post(`/webhook/${process.env.BOT_TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
-});
 
 // Обработчик транскрибации
 app.post('/transcribe', async (req, res) => {
@@ -32,14 +22,17 @@ app.post('/transcribe', async (req, res) => {
     const uploadRes = await axios.post(
       'https://api.assemblyai.com/v2/upload',
       audioFile.data,
-      { headers: { authorization: ASSEMBLY_API_KEY } }
+      { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
     );
 
     // Создание транскрипции
     const transcriptRes = await axios.post(
       'https://api.assemblyai.com/v2/transcript',
-      { audio_url: uploadRes.data.upload_url, language_code: 'ru' },
-      { headers: { authorization: ASSEMBLY_API_KEY } }
+      { 
+        audio_url: uploadRes.data.upload_url,
+        language_code: 'ru'
+      },
+      { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
     );
 
     // Получение результата
@@ -48,15 +41,17 @@ app.post('/transcribe', async (req, res) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       transcript = await axios.get(
         `https://api.assemblyai.com/v2/transcript/${transcriptRes.data.id}`,
-        { headers: { authorization: ASSEMBLY_API_KEY } }
+        { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
       );
     } while (transcript.data.status === 'processing');
 
     // Отправка сообщения
-    const message = `📅 ${new Date().toLocaleString('ru-RU')}\n${transcript.data.text}`;
-    await bot.sendMessage(userId, message);
+    await bot.sendMessage(
+      userId,
+      `📅 ${new Date().toLocaleString('ru-RU')}\n${transcript.data.text}`
+    );
 
-    res.json({ success: true, text: transcript.data.text });
+    res.json({ success: true });
 
   } catch (error) {
     console.error('Ошибка:', error);
@@ -64,13 +59,8 @@ app.post('/transcribe', async (req, res) => {
   }
 });
 
-// Статические файлы
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Запуск сервера
-app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
-  bot.setWebHook(`${process.env.RENDER_URL}/webhook/${process.env.BOT_TOKEN}`);
-});
+app.listen(port, () => console.log(`Сервер запущен на порту ${port}`));

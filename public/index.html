@@ -1,60 +1,28 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
-  <title>Запись мыслей</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Голосовой дневник</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <!-- Прелоадер -->
   <div class="loader">
-    <div class="siri-ball" id="siriBall"></div>
-    <div class="loader-text">
-      <span>Чувствуй,</span>
-      <span>фиксируй,</span>
-      <span>рефлексируй...</span>
-    </div>
+    <div class="siri-ball"></div>
+    <div class="loader-text">Инициализация...</div>
   </div>
 
-  <!-- Контейнер для волн -->
-  <div class="wave-container"></div>
-
-  <!-- Основной контейнер приложения, изначально скрыт -->
   <div class="container hidden">
     <h1>Запись мыслей</h1>
-    <!-- Таймер записи -->
-    <p id="timer" class="timer">00:00:00</p>
-    <!-- Кнопки записи -->
-    <div class="button-group">
-      <button id="recordButton" class="btn btn-record">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-          <line x1="12" y1="19" x2="12" y2="23"></line>
-          <line x1="8" y1="23" x2="16" y2="23"></line>
-        </svg>
-        Начать
-      </button>
-      <button id="stopButton" class="btn btn-stop" disabled>
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        </svg>
-        Остановить
-      </button>
+    
+    <div class="controls">
+      <button id="recordButton" class="btn" disabled>Начать запись</button>
+      <button id="stopButton" class="btn" disabled>Остановить</button>
     </div>
-    <!-- Статус -->
-    <p id="status">Нажмите "Начать", чтобы начать запись</p>
-    <!-- Прогресс-бар -->
-    <div id="progressBar" class="progress-bar"></div>
-    <!-- Лог для отладки -->
-    <p id="debugLog" class="debug-log"></p>
+
+    <p id="status">Подготовка к работе...</p>
   </div>
 
   <script src="/script.js"></script>
 </body>
 </html>
-
-
