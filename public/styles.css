@@ -1,10 +1,10 @@
 :root {
-  /* Переменные для волн */
+  /* Управляет силой колебания волн и скоростью их движения */
   --amplitude: 10px;
   --speed: 10s;
 }
 
-/* Базовые стили */
+/* Базовые сбросы */
 html,
 body {
   height: 100%;
@@ -57,42 +57,73 @@ body {
   animation: fadeInUp 0.5s forwards;
 }
 
-.loader-text span:nth-child(1) { animation-delay: 0s; }
-.loader-text span:nth-child(2) { animation-delay: 0.3s; }
-.loader-text span:nth-child(3) { animation-delay: 0.6s; }
-
-@keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+.loader-text span:nth-child(1) {
+  animation-delay: 0s;
+}
+.loader-text span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.loader-text span:nth-child(3) {
+  animation-delay: 0.6s;
 }
 
-/* Шарик с интенсивной градиентной анимацией */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Шарик с градиентной анимацией */
 .siri-ball {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   background: linear-gradient(
     45deg,
-    rgba(255, 100, 100, 0.8),
-    rgba(100, 255, 100, 0.8),
-    rgba(100, 100, 255, 0.8),
-    rgba(255, 255, 100, 0.8)
+    rgba(0, 255, 255, 0.7),
+    rgba(0, 255, 100, 0.7),
+    rgba(255, 0, 255, 0.7),
+    rgba(255, 200, 0, 0.7),
+    rgba(0, 200, 255, 0.7)
   );
   background-size: 400% 400%;
-  animation: gradientShift 4s ease-in-out infinite, pulseGlow 1.8s ease-in-out infinite;
-  filter: blur(12px);
+  animation: gradientShift 5s ease-in-out infinite,
+    pulseGlow 2s ease-in-out infinite;
+  filter: blur(15px);
 }
 
+/* Плавная смена градиента */
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
+/* Пульсация */
 @keyframes pulseGlow {
-  0% { transform: scale(0.8); opacity: 0.7; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.8); opacity: 0.7; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
 }
 
 /* Контейнер для волн */
@@ -106,28 +137,40 @@ body {
   z-index: 0;
 }
 
-/* Волны – увеличенное количество и интенсивность анимаций */
+/* Настройки анимации волн */
 .wave {
   position: absolute;
-  width: 220%;
+  width: 200%;
   height: 100%;
-  filter: blur(10px) drop-shadow(0 0 12px rgba(0, 198, 255, 0.4));
-  animation: waveMove var(--speed) linear infinite, waveHeight 3.5s ease-in-out infinite;
+  filter: blur(8px) drop-shadow(0 0 10px rgba(0, 198, 255, 0.3));
+  animation: waveMove var(--speed) linear infinite,
+    waveHeight 3s ease-in-out infinite;
 }
 
+/* Горизонтальное движение волн */
 @keyframes waveMove {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
+/* Вертикальное колебание волн */
 @keyframes waveHeight {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(calc(var(--amplitude) * 1.5)); }
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(calc(var(--amplitude) * 1));
+  }
 }
 
 /* Основной контейнер приложения */
 .container {
-  background: rgba(26, 42, 42, 0.55);
+  background: rgba(26, 42, 42, 0.5);
   backdrop-filter: blur(10px);
   padding: 40px;
   border-radius: 20px;
@@ -145,7 +188,7 @@ body {
   align-items: center;
   min-height: 60%;
   animation: containerPulse 4s infinite;
-  box-shadow: 0 0 20px rgba(0, 198, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
 }
 
 .container.hidden {
@@ -153,9 +196,15 @@ body {
 }
 
 @keyframes containerPulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.02); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 h1 {
@@ -168,8 +217,12 @@ h1 {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Таймер записи */
@@ -199,17 +252,25 @@ h1 {
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(5px);
   box-shadow: 0 5px 15px rgba(255, 255, 255, 0.05);
 }
 
 .btn-record {
-  background: linear-gradient(135deg, rgba(163, 216, 244, 0.6), rgba(212, 165, 165, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(163, 216, 244, 0.5),
+    rgba(212, 165, 165, 0.5)
+  );
 }
 
 .btn-stop {
-  background: linear-gradient(135deg, rgba(255, 182, 193, 0.6), rgba(77, 208, 225, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 182, 193, 0.5),
+    rgba(77, 208, 225, 0.5)
+  );
 }
 
 .btn:disabled {
@@ -219,7 +280,7 @@ h1 {
 
 .btn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 198, 255, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 198, 255, 0.2);
 }
 
 .icon {
