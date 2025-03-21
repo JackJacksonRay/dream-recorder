@@ -13,19 +13,10 @@
   let timerInterval = null;
   const waveContainer = document.querySelector(".wave-container");
   const colors = [
-    "#a3d8f4",
-    "#9ad2ef",
-    "#91ccea",
-    "#88c6e5",
-    "#7fc0e0",
-    "#76bada",
-    "#6db4d5",
-    "#64aed0",
-    "#5ba8cb",
-    "#52a2c6",
+    "#ff7070", "#ffb670", "#ffe570", "#a3d8f4", "#91ccea", "#88c6e5", "#76bada", "#64aed0", "#5ba8cb", "#52a2c6"
   ];
 
-  // Функция для логирования сообщений в элемент debugLog и консоль
+  // Функция для логирования
   function logToInterface(message) {
     const debugLog = document.getElementById("debugLog");
     if (debugLog) {
@@ -34,7 +25,7 @@
     console.log(message);
   }
 
-  // Асинхронное получение Telegram User ID
+  // Асинхронное получение Telegram User ID через Telegram WebApp
   async function getTelegramUserId() {
     return new Promise((resolve) => {
       if (window.Telegram?.WebApp) {
@@ -55,7 +46,7 @@
         };
         checkUserId();
       } else {
-        console.warn("Telegram Web App не найден");
+        console.warn("Telegram WebApp не найден");
         resolve(null);
       }
     });
@@ -78,7 +69,7 @@
     }
   }
 
-  // Создание и анимация волн
+  // Создание и анимация волн с асинхронными настройками
   function createWaves() {
     try {
       waveContainer.innerHTML = "";
@@ -90,11 +81,15 @@
         wave.setAttribute("viewBox", "0 0 1000 200");
         wave.setAttribute("preserveAspectRatio", "none");
 
+        // Для разнообразия оттенков используем случайный цвет из массива
+        const color1 = colors[Math.floor(Math.random() * colors.length)];
+        const color2 = colors[Math.floor(Math.random() * colors.length)];
+
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.classList.add("wave-path");
         path.setAttribute(
           "d",
-          `M0,${100 + i * 5} Q125,${85 + i * 5} 250,${100 + i * 5} T500,${100 + i * 5} T750,${100 + i * 5} T1000,${100 + i * 5} V200 H0 Z`
+          `M0,${100 + i * 4} Q125,${80 + i * 4} 250,${100 + i * 4} T500,${100 + i * 4} T750,${100 + i * 4} T1000,${100 + i * 4} V200 H0 Z`
         );
         path.setAttribute("fill", `url(#gradient${i})`);
 
@@ -108,10 +103,10 @@
 
         const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
         stop1.setAttribute("offset", "0%");
-        stop1.setAttribute("style", `stop-color:${colors[i - 1]};stop-opacity:0.7`);
+        stop1.setAttribute("style", `stop-color:${color1};stop-opacity:0.8`);
         const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
         stop2.setAttribute("offset", "100%");
-        stop2.setAttribute("style", `stop-color:${colors[i % colors.length]};stop-opacity:0.7`);
+        stop2.setAttribute("style", `stop-color:${color2};stop-opacity:0.8`);
 
         gradient.appendChild(stop1);
         gradient.appendChild(stop2);
@@ -126,7 +121,7 @@
     }
   }
 
-  // Инициализация Web Audio API и анализ звука (волны реагируют на громкость)
+  // Инициализация Web Audio API и анализ звука (усиленная реакция на громкость)
   async function setupAudioAnalysis(stream) {
     try {
       logToInterface("Инициализация Web Audio API...");
@@ -146,12 +141,14 @@
         }
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
-        const amplitude = Math.min(avg / 128, 1);
+        // Усиливаем реакцию: увеличиваем амплитуду в 2 раза
+        const amplitude = Math.min((avg / 128) * 2, 1);
         logToInterface(`Громкость: ${avg.toFixed(2)}, Амплитуда: ${amplitude.toFixed(2)}`);
 
-        // Изменяем CSS-переменные для анимации волн
-        document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 20}px`);
-        document.documentElement.style.setProperty("--speed", `${10 - amplitude * 5}s`);
+        // Обновляем CSS-переменные: базовое значение плюс пропорциональное увеличение
+        document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 30}px`);
+        // Вычисляем скорость как обратную величину амплитуды (чем громче, тем быстрее)
+        document.documentElement.style.setProperty("--speed", `${10 - amplitude * 6}s`);
 
         requestAnimationFrame(updateWaves);
       }
@@ -271,13 +268,17 @@
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
 
-        // Используем полученное ранее Telegram User ID
-        if (telegramUserId) {
+        // Если Telegram User ID не получен – прекращаем отправку с ошибкой
+        if (!telegramUserId) {
+          console.error("Telegram User ID не получен. Убедитесь, что вы нажали 'Start' в чате с ботом.");
+          fadeInStatus("Ошибка: не получен Telegram User ID. Нажмите 'Start' в чате с ботом.");
+          clearInterval(loadingInterval);
+          clearInterval(progressInterval);
+          progressBar.style.display = "none";
+          return;
+        } else {
           formData.append("userId", telegramUserId);
           console.log("Передан userId:", telegramUserId);
-        } else {
-          console.warn("Telegram User ID не найден, отправляем в общий канал");
-          formData.append("userId", "default_channel_id");
         }
 
         try {
@@ -307,7 +308,7 @@
   // Инициализация приложения
   async function initApp() {
     toggleLoader(true);
-    await getTelegramUserId();
+    await getTelegramUserId(); // Ждем, пока данные пользователя будут получены
     createWaves();
     initRecordHandlers();
     toggleLoader(false);
