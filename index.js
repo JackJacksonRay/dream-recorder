@@ -8,15 +8,19 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Инициализация бота
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+// Исправление конфликта поллинга
+const bot = new TelegramBot(process.env.BOT_TOKEN);
 app.use(fileUpload());
 app.use(express.static('public'));
 
 // Конфигурация AssemblyAI
 const ASSEMBLY_API_KEY = process.env.ASSEMBLYAI_API_KEY;
-const UPLOAD_ENDPOINT = 'https://api.assemblyai.com/v2/upload';
-const TRANSCRIPT_ENDPOINT = 'https://api.assemblyai.com/v2/transcript';
+
+// Вебхук для бота
+app.post(`/webhook/${process.env.BOT_TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 
 // Обработчик транскрибации
 app.post('/transcribe', async (req, res) => {
@@ -24,46 +28,43 @@ app.post('/transcribe', async (req, res) => {
     const { userId } = req.body;
     const audioFile = req.files.audio;
 
-    // Валидация данных
-    if (!userId || !audioFile) {
-      return res.status(400).json({ error: 'Недостаточно данных' });
-    }
-
-    // Загрузка аудио
-    const { data: uploadData } = await axios.post(UPLOAD_ENDPOINT, audioFile.data, {
-      headers: { authorization: ASSEMBLY_API_KEY }
-    });
+    // Загрузка аудио в AssemblyAI
+    const uploadRes = await axios.post(
+      'https://api.assemblyai.com/v2/upload',
+      audioFile.data,
+      { headers: { authorization: ASSEMBLY_API_KEY } }
+    );
 
     // Создание транскрипции
-    const { data: transcriptData } = await axios.post(TRANSCRIPT_ENDPOINT, {
-      audio_url: uploadData.upload_url,
-      language_code: 'ru'
-    }, {
-      headers: { authorization: ASSEMBLY_API_KEY }
-    });
+    const transcriptRes = await axios.post(
+      'https://api.assemblyai.com/v2/transcript',
+      { audio_url: uploadRes.data.upload_url, language_code: 'ru' },
+      { headers: { authorization: ASSEMBLY_API_KEY } }
+    );
 
-    // Ожидание результата
+    // Получение результата
     let transcript;
     do {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      transcript = await axios.get(`${TRANSCRIPT_ENDPOINT}/${transcriptData.id}`, {
-        headers: { authorization: ASSEMBLY_API_KEY }
-      });
+      transcript = await axios.get(
+        `https://api.assemblyai.com/v2/transcript/${transcriptRes.data.id}`,
+        { headers: { authorization: ASSEMBLY_API_KEY } }
+      );
     } while (transcript.data.status === 'processing');
 
-    // Отправка результата
+    // Отправка сообщения
     const message = `📅 ${new Date().toLocaleString('ru-RU')}\n${transcript.data.text}`;
     await bot.sendMessage(userId, message);
 
-    res.json({ text: transcript.data.text });
+    res.json({ success: true, text: transcript.data.text });
 
   } catch (error) {
-    console.error('Ошибка транскрибации:', error);
+    console.error('Ошибка:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Статический роут
+// Статические файлы
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -71,4 +72,5 @@ app.get('*', (req, res) => {
 // Запуск сервера
 app.listen(port, () => {
   console.log(`Сервер запущен на порту ${port}`);
+  bot.setWebHook(`${process.env.RENDER_URL}/webhook/${process.env.BOT_TOKEN}`);
 });
