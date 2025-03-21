@@ -14,66 +14,61 @@ app.use(fileUpload());
 app.use(express.static('public'));
 
 // Конфигурация AssemblyAI
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
-const UPLOAD_URL = 'https://api.assemblyai.com/v2/upload';
-const TRANSCRIPT_URL = 'https://api.assemblyai.com/v2/transcript';
+const ASSEMBLY_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+const UPLOAD_ENDPOINT = 'https://api.assemblyai.com/v2/upload';
+const TRANSCRIPT_ENDPOINT = 'https://api.assemblyai.com/v2/transcript';
 
-// Обработчик для транскрибации
+// Обработчик транскрибации
 app.post('/transcribe', async (req, res) => {
   try {
     const { userId } = req.body;
     const audioFile = req.files.audio;
 
+    // Валидация данных
     if (!userId || !audioFile) {
-      return res.status(400).json({ error: 'Missing required parameters' });
+      return res.status(400).json({ error: 'Недостаточно данных' });
     }
 
-    // Шаг 1: Загрузка аудио в AssemblyAI
-    const uploadResponse = await axios.post(UPLOAD_URL, audioFile.data, {
-      headers: {
-        'authorization': ASSEMBLYAI_API_KEY,
-        'content-type': 'audio/webm'
-      }
+    // Загрузка аудио
+    const { data: uploadData } = await axios.post(UPLOAD_ENDPOINT, audioFile.data, {
+      headers: { authorization: ASSEMBLY_API_KEY }
     });
 
-    // Шаг 2: Создание транскрипции
-    const transcriptResponse = await axios.post(TRANSCRIPT_URL, {
-      audio_url: uploadResponse.data.upload_url,
+    // Создание транскрипции
+    const { data: transcriptData } = await axios.post(TRANSCRIPT_ENDPOINT, {
+      audio_url: uploadData.upload_url,
       language_code: 'ru'
     }, {
-      headers: { 'authorization': ASSEMBLYAI_API_KEY }
+      headers: { authorization: ASSEMBLY_API_KEY }
     });
 
-    // Шаг 3: Ожидание завершения транскрибации
-    let transcriptResult;
-    while (true) {
-      transcriptResult = await axios.get(`${TRANSCRIPT_URL}/${transcriptResponse.data.id}`, {
-        headers: { 'authorization': ASSEMBLYAI_API_KEY }
-      });
-      
-      if (transcriptResult.data.status === 'completed') break;
-      if (transcriptResult.data.status === 'error') throw new Error('Transcription failed');
+    // Ожидание результата
+    let transcript;
+    do {
       await new Promise(resolve => setTimeout(resolve, 2000));
-    }
+      transcript = await axios.get(`${TRANSCRIPT_ENDPOINT}/${transcriptData.id}`, {
+        headers: { authorization: ASSEMBLY_API_KEY }
+      });
+    } while (transcript.data.status === 'processing');
 
-    // Шаг 4: Отправка результата пользователю
-    const message = `📅 ${new Date().toLocaleString('ru-RU')}\n${transcriptResult.data.text}`;
+    // Отправка результата
+    const message = `📅 ${new Date().toLocaleString('ru-RU')}\n${transcript.data.text}`;
     await bot.sendMessage(userId, message);
 
-    res.json({ success: true, text: transcriptResult.data.text });
+    res.json({ text: transcript.data.text });
 
   } catch (error) {
-    console.error('Transcription error:', error);
+    console.error('Ошибка транскрибации:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Обработчик для главной страницы
+// Статический роут
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Запуск сервера
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Сервер запущен на порту ${port}`);
 });
