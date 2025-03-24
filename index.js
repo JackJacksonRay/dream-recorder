@@ -17,7 +17,7 @@ if (!BOT_TOKEN || !ASSEMBLYAI_API_KEY) {
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
 // Middleware
-<<<<<<< HEAD
+ HEAD
 app.use(
   fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
@@ -35,7 +35,7 @@ app.post("/transcribe", async (req, res) => {
   const userId = req.body.userId; // Получаем userId из запроса
   console.log("Получен аудиофайл:", audio.name);
   console.log("Получен userId:", userId);
-=======
+
 app.use(fileUpload({
   limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
 }));
@@ -56,7 +56,7 @@ app.post('/transcribe', async (req, res) => {
   const userId = req.body.userId;
   console.log('Получен аудиофайл:', audio.name);
   console.log('Получен userId:', userId);
->>>>>>> 0d300a071350ea5f79d34564417de3055770cbfb
+ 0d300a071350ea5f79d34564417de3055770cbfb
 
   try {
     // Загрузка аудио на AssemblyAI
@@ -98,7 +98,7 @@ app.post('/transcribe', async (req, res) => {
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
-<<<<<<< HEAD
+HEAD
     const poll = async () => {
       const transcriptData = await pollTranscriptStatus();
       if (transcriptData.status === "completed") {
@@ -116,28 +116,28 @@ app.post('/transcribe', async (req, res) => {
     res.json({ text });
 
     // 3. Отправка результата в личный чат пользователя
-=======
+
     if (transcript.status === 'error') {
       throw new Error('Ошибка транскрибации');
     }
 
     const text = transcript.text;
->>>>>>> 0d300a071350ea5f79d34564417de3055770cbfb
+0d300a071350ea5f79d34564417de3055770cbfb
     const now = new Date();
     const dateTime = now.toLocaleString('ru-RU');
     const message = `${dateTime}\n${text}`;
-<<<<<<< HEAD
+ HEAD
     bot.sendMessage(userId, message).catch((err) => {
       console.error(`Ошибка отправки пользователю ${userId}:`, err.message);
     });
-=======
+
 
     // Отправка в личный чат пользователя
     await bot.sendMessage(userId, message);
     console.log(`Сообщение отправлено пользователю ${userId}`);
 
     res.json({ text: message });
->>>>>>> 0d300a071350ea5f79d34564417de3055770cbfb
+ 0d300a071350ea5f79d34564417de3055770cbfb
   } catch (error) {
     console.error('Ошибка при транскрибации:', error.message);
     res.status(500).json({ error: 'Ошибка при транскрибации' });
