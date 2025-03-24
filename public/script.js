@@ -2,15 +2,17 @@
 
 (() => {
   // Глобальные переменные
-  let telegramUserId = null;
   let mediaRecorder;
   let audioChunks = [];
   let audioContext;
   let analyser;
   let source;
   let isRecording = false;
+  let telegramUserId = null; // Для хранения userId
+
   let recordStartTime = 0;
   let timerInterval = null;
+
   const waveContainer = document.querySelector(".wave-container");
   const colors = [
     "#a3d8f4",
@@ -22,63 +24,54 @@
     "#6db4d5",
     "#64aed0",
     "#5ba8cb",
-    "#52a2c6"
+    "#52a2c6",
   ];
 
-  // Функция для логирования на экран и в консоль
+  // Функция для отображения сообщений на экране
   function logToInterface(message) {
     const debugLog = document.getElementById("debugLog");
     if (debugLog) {
       debugLog.textContent = message;
     }
-    console.log(message);
   }
 
-  // Асинхронное получение Telegram User ID через WebApp API
-  async function getTelegramUserId() {
-    return new Promise((resolve) => {
+  // Инициализация Telegram Web App
+  function initTelegram() {
+    try {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
-        const checkUserId = () => {
-          if (
-            window.Telegram.WebApp.initDataUnsafe &&
-            window.Telegram.WebApp.initDataUnsafe.user &&
-            window.Telegram.WebApp.initDataUnsafe.user.id
-          ) {
-            telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
-            console.log("Telegram User ID установлен:", telegramUserId);
-            resolve(telegramUserId);
-          } else {
-            setTimeout(checkUserId, 100); // Проверяем каждые 100 мс
-          }
-        };
-        checkUserId();
+        setTimeout(() => window.Telegram.WebApp.expand(), 500);
+        telegramUserId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
+        if (telegramUserId) {
+          logToInterface("Telegram User ID: " + telegramUserId);
+        } else {
+          logToInterface("Не удалось получить userId из Telegram Web App");
+        }
       } else {
-        console.warn("Telegram Web App не найден");
-        resolve(null);
+        logToInterface("Telegram Web App не найден");
       }
-    });
+    } catch (error) {
+      logToInterface(`Ошибка инициализации Telegram: ${error.message}`);
+    }
   }
 
-  // Управление показом/скрытием прелоадера и контейнера
+  // Управление отображением прелоадера и контейнера
   function toggleLoader(show) {
     const loader = document.querySelector(".loader");
     const container = document.querySelector(".container");
     if (loader && container) {
       if (show) {
-        loader.style.display = "block";
-        container.style.display = "none";
+        loader.classList.remove("hidden");
+        container.classList.add("hidden");
       } else {
-        loader.style.display = "none";
-        container.style.display = "block";
+        loader.classList.add("hidden");
+        container.classList.remove("hidden");
       }
-    } else {
-      console.error("Элементы прелоадера или контейнера не найдены");
     }
   }
 
-  // Динамическое создание SVG-волн с градиентом
+  // Создание и анимация волн
   function createWaves() {
     try {
       waveContainer.innerHTML = "";
@@ -126,7 +119,7 @@
     }
   }
 
-  // Инициализация Web Audio API для анализа аудио
+  // Инициализация Web Audio API и анализ звука
   async function setupAudioAnalysis(stream) {
     try {
       logToInterface("Инициализация Web Audio API...");
@@ -144,6 +137,7 @@
           resetWaves();
           return;
         }
+
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((sum, val) => sum + val, 0) / bufferLength;
         const amplitude = Math.min(avg / 128, 1);
@@ -154,19 +148,20 @@
 
         requestAnimationFrame(updateWaves);
       }
+
       updateWaves();
     } catch (error) {
       logToInterface(`Ошибка Web Audio API: ${error.message}`);
     }
   }
 
-  // Сброс параметров волн к значениям по умолчанию
+  // Сброс значений волн
   function resetWaves() {
     document.documentElement.style.setProperty("--amplitude", "10px");
     document.documentElement.style.setProperty("--speed", "10s");
   }
 
-  // Плавное обновление статуса на экране
+  // Плавное обновление статуса
   function fadeInStatus(text) {
     const status = document.getElementById("status");
     if (!status) {
@@ -181,7 +176,7 @@
     }, 10);
   }
 
-  // Таймер записи: запуск и остановка отсчёта
+  // Таймер записи
   function startTimer() {
     recordStartTime = Date.now();
     const timerElement = document.getElementById("timer");
@@ -200,10 +195,11 @@
     timerElement.textContent = "00:00:00";
   }
 
-  // Инициализация обработчиков для кнопок записи
+  // Инициализация обработчиков записи
   function initRecordHandlers() {
     const recordButton = document.getElementById("recordButton");
     const stopButton = document.getElementById("stopButton");
+
     if (!recordButton || !stopButton) {
       logToInterface("Ошибка: кнопки не найдены");
       return;
@@ -248,7 +244,6 @@
       }
       resetWaves();
 
-      // Обновление статуса и индикация «Обработка»
       let dots = 0;
       fadeInStatus("Обработка");
       const loadingInterval = setInterval(() => {
@@ -256,7 +251,6 @@
         document.getElementById("status").textContent = "Обработка" + ".".repeat(dots);
       }, 500);
 
-      // Прогресс-бар
       const progressBar = document.getElementById("progressBar");
       progressBar.style.display = "block";
       let progress = 0;
@@ -268,17 +262,18 @@
       }, 1000);
 
       mediaRecorder.onstop = async () => {
+        if (!telegramUserId) {
+          logToInterface("Ошибка: не удалось получить userId");
+          fadeInStatus("Ошибка: не удалось получить userId");
+          clearInterval(loadingInterval);
+          clearInterval(progressInterval);
+          progressBar.style.display = "none";
+          return;
+        }
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
-
-        if (telegramUserId) {
-          formData.append("userId", telegramUserId);
-          console.log("Передан userId:", telegramUserId);
-        } else {
-          console.warn("Telegram User ID не найден, отправляем в общий канал");
-          formData.append("userId", "default_channel_id"); // Замените на нужное значение
-        }
+        formData.append("userId", telegramUserId);
 
         try {
           const response = await fetch("/transcribe", {
@@ -304,17 +299,18 @@
     });
   }
 
-  // Инициализация приложения: загрузка данных, создание волн и обработчиков
-  async function initApp() {
-    toggleLoader(true); // Показываем прелоадер
-    await getTelegramUserId(); // Дожидаемся получения userId
+  // Инициализация приложения
+  function initApp() {
+    logToInterface("Инициализация приложения началась");
+    initTelegram();
     createWaves();
     initRecordHandlers();
-    toggleLoader(false); // Скрываем прелоадер
+    setTimeout(() => {
+      toggleLoader(false);
+      logToInterface("Прелоадер скрыт");
+    }, 2500);
     logToInterface("Инициализация завершена");
   }
 
   window.addEventListener("DOMContentLoaded", initApp);
 })();
-
- 
