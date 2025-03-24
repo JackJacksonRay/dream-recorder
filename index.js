@@ -1,94 +1,104 @@
-"use strict";
-
-// Загружаем переменные окружения (проверь, что в файле .env задан BOT_TOKEN)
-require("dotenv").config();
-
-const express = require("express");
-const path = require("path");
-const TelegramBot = require("node-telegram-bot-api");
-const multer = require("multer");
-const fs = require("fs").promises;
-const axios = require("axios"); // Если потребуется интеграция с внешним сервисом транскрипции
-
-// Создаем экземпляр Express
+const express = require('express');
+const TelegramBot = require('node-telegram-bot-api');
+const fileUpload = require('express-fileupload');
+const axios = require('axios');
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Подключаем статику: отдаем файлы из папки public (index.html, styles.css, script.js)
-app.use(express.static(path.join(__dirname, "public")));
-
-// Настраиваем multer для временного хранения загруженных аудиофайлов в папке uploads
-const upload = multer({ dest: "uploads/" });
-
-// Читаем токен Telegram-бота из переменных окружения
+// Чтение переменных окружения
 const BOT_TOKEN = process.env.BOT_TOKEN;
-if (!BOT_TOKEN) {
-  console.error("Ошибка: BOT_TOKEN не задан в переменных окружения!");
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+
+if (!BOT_TOKEN || !ASSEMBLYAI_API_KEY) {
+  console.error('Необходимые переменные окружения не заданы!');
   process.exit(1);
 }
 
-// Инициализируем Telegram-бота (polling выключен, т.к. используем метод sendMessage)
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
-/**
- * Функция транскрипции аудио.
- * Сейчас реализована как заглушка и возвращает тестовый текст.
- * При интеграции Assembly API (или другого сервиса) замените тело функции на вызов API.
- */
-async function transcribeAudio(filePath) {
-  // Пример интеграции с Assembly API (закомментирован):
-  // try {
-  //   const response = await axios.post(process.env.ASSEMBLY_API_URL, { filePath }, {
-  //     headers: { 'Authorization': `Bearer ${process.env.ASSEMBLY_API_KEY}` }
-  //   });
-  //   return response.data.transcribedText;
-  // } catch (error) {
-  //   console.error("Ошибка транскрипции:", error);
-  //   throw error;
-  // }
+// Middleware
+app.use(fileUpload({
+  limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
+}));
+app.use(express.static('public'));
 
-  // Заглушка:
-  return "Это пример транскрибированного текста";
-}
+// Обработчик для корневого маршрута
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
 
-// Эндпоинт для приема аудио и отправки результата транскрипции в Telegram
-app.post("/transcribe", upload.single("audio"), async (req, res) => {
+// Эндпоинт для транскрипции аудио
+app.post('/transcribe', async (req, res) => {
+  if (!req.files || !req.files.audio || !req.body.userId) {
+    return res.status(400).json({ error: 'Файл или userId не найдены' });
+  }
+
+  const audio = req.files.audio;
+  const userId = req.body.userId;
+  console.log('Получен аудиофайл:', audio.name);
+  console.log('Получен userId:', userId);
+
   try {
-    const audioFile = req.file;          // Получаем загруженный аудиофайл
-    const userId = req.body.userId;        // Получаем userId из тела запроса
+    // Загрузка аудио на AssemblyAI
+    const uploadResponse = await axios.post(
+      'https://api.assemblyai.com/v2/upload',
+      audio.data,
+      {
+        headers: {
+          authorization: ASSEMBLYAI_API_KEY,
+          'content-type': 'application/octet-stream',
+        },
+      }
+    );
+    const audioUrl = uploadResponse.data.upload_url;
 
-    console.log("Получен аудиофайл:", audioFile?.originalname);
-    console.log("Получен userId:", userId);
+    // Запрос на транскрипцию
+    const transcribeResponse = await axios.post(
+      'https://api.assemblyai.com/v2/transcript',
+      { audio_url: audioUrl, language_code: 'ru' },
+      {
+        headers: {
+          authorization: ASSEMBLYAI_API_KEY,
+          'content-type': 'application/json',
+        },
+      }
+    );
 
-    // Если не найден файл или параметр userId, возвращаем ошибку 400
-    if (!audioFile || !userId) {
-      return res.status(400).json({ error: "Аудиофайл или userId отсутствуют" });
+    const transcriptId = transcribeResponse.data.id;
+    const resultUrl = `https://api.assemblyai.com/v2/transcript/${transcriptId}`;
+
+    // Ожидание завершения транскрипции
+    let transcript;
+    while (true) {
+      const statusResponse = await axios.get(resultUrl, {
+        headers: { authorization: ASSEMBLYAI_API_KEY },
+      });
+      transcript = statusResponse.data;
+      if (transcript.status === 'completed' || transcript.status === 'error') break;
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
-    // Транскрибируем аудиофайл (функция возвращает строку с транскрипцией)
-    const transcribedText = await transcribeAudio(audioFile.path);
+    if (transcript.status === 'error') {
+      throw new Error('Ошибка транскрибации');
+    }
 
-    // Формируем сообщение с датой, временем и текстом транскрипции
-    const timestamp = new Date().toLocaleString();
-    const message = `Дата и время: ${timestamp}\nТекст: ${transcribedText}`;
+    const text = transcript.text;
+    const now = new Date();
+    const dateTime = now.toLocaleString('ru-RU');
+    const message = `${dateTime}\n${text}`;
 
-    // Отправляем сообщение пользователю через Telegram бота
+    // Отправка в личный чат пользователя
     await bot.sendMessage(userId, message);
     console.log(`Сообщение отправлено пользователю ${userId}`);
 
-    // Удаляем временный файл после обработки
-    await fs.unlink(audioFile.path);
-
-    // Возвращаем JSON с результатом транскрипции
-    res.json({ text: transcribedText });
+    res.json({ text: message });
   } catch (error) {
-    console.error("Ошибка при обработке транскрипции:", error);
-    res.status(500).json({ error: "Ошибка сервера" });
+    console.error('Ошибка при транскрибации:', error.message);
+    res.status(500).json({ error: 'Ошибка при транскрибации' });
   }
 });
 
-// Запуск сервера на порту, указанном в переменной окружения PORT или 3000
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+// Запуск сервера
+app.listen(port, () => {
+  console.log(`Сервер запущен на порту ${port}`);
 });
-
