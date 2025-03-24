@@ -1,0 +1,52 @@
+[33m8f608b7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m ver2.0
+[33m5c4d98f[m ver1.9.9.2
+[33mcb983b4[m ver1.9.9.1
+[33mfd990ed[m ver1.9.9
+[33m3a37959[m ver1.9.6
+[33m26c5aaf[m ver1.9.5
+[33m8e94e29[m Обновлён script.js, index.js, index.html, styles.css
+[33m8eb5ec8[m ver1.7
+[33mf4f6eab[m ver1.5
+[33m7047eab[m Personal5
+[33m3e4e25b[m Personal4
+[33mbb82f68[m Personal3
+[33m1d3b3a0[m Personal2
+[33m64e5fbd[m Personal1
+[33m5bee57b[m Personal chat
+[33m65a532a[m Vers 1.4.1
+[33m846a45d[m Vers 1.4
+[33mc71df30[m Optimized for Telegram Mini Apps: moved wave animation to CSS, fixed siri-ball color with JS111
+[33m2c711b2[m Optimized for Telegram Mini Apps: moved wave animation to CSS, fixed siri-ball color with JS11
+[33m92c9e38[m Optimized for Telegram Mini Apps: moved wave animation to CSS, fixed siri-ball color with JS1
+[33mffe558d[m Optimized for Telegram Mini Apps: moved wave animation to CSS, fixed siri-ball color with JS
+[33m8b3b420[m Fixed siri-ball color with hue-rotate, optimized wave animation for better performance
+[33ma744aae[m Fixed preloader issue, moved siri-ball above text, added dynamic RGB color
+[33m120d3d0[m Perfected wave animation with Perlin noise, optimized voice reaction, and modular code11
+[33mee8a6b3[m Perfected wave animation with Perlin noise, optimized voice reaction, and modular code
+[33mbdae357[m Increased waves to 10, smoothed peaks, improved animation, enhanced voice reaction
+[33m0e4c7cb[m Enhanced wave animation and added voice-reactive transform
+[33ma1364cd[m Updated wave animation and added debug logs to interface
+[33m1b2c0a2[m Updated to five waves with rolling effect and fixed disappearing issue
+[33m0aa75af[m Switched to SVG waves and added voice-reactive animation
+[33m96d4ca9[m Refined wave shapes for smoother horizontal waves
+[33mec1f7c3[m Fixed wave shapes to be smooth and horizontal with pastel colors
+[33m78c42dc[m Fixed waves to be horizontal, smooth, and pastel blue-turquoise
+[33m352bf62[m Switched back to CSS waves and fixed design issues
+[33mb849bae[m Added server setup with Express and simplified waves
+[33m5edbbb8[m Optimized wave code and fixed rendering issues
+[33m04f47a7[m Fixed wave visibility issue with proper SVG and styles
+[33m58285c5[m Updated waves with dynamic colors, shapes, and independent movement
+[33m9cad0e7[m Supercharged design with dynamic waves, animated preloader, and integrated buttons
+[33m357a727[m Updated preloader, buttons, waves with pastel gradients and transparency
+[33m796d869[m Updated preloader with 'Чувствуй, фиксируй...' and stylish design
+[33m398f8f6[m Version 1.2
+[33m4c96c9e[m Fixed preload, fullscreen, and borders
+[33m319f8d9[m Fixed preload, fullscreen, borders, and wave animation
+[33m1814641[m Fixed positioning, preload, borders, and wave animation
+[33m52ccdf2[m Improved preload, positioning, wave animation, and borders
+[33m8a6c0c0[m Fixed Telegram WebApp error and preload timeout
+[33ma8f24ec[m Updated design inspired by Tiny Verse
+[33m3e78c64[m Updated design with stylish UI ver1.1
+[33m2cc7d61[m Updated design with stylish UI
+[33mfcf468e[m Updated design with stylish UI
+[33m0a9cc93[m Initial commit
