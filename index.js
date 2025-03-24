@@ -56,7 +56,6 @@ app.post('/transcribe', async (req, res) => {
   const userId = req.body.userId;
   console.log('Получен аудиофайл:', audio.name);
   console.log('Получен userId:', userId);
- 0d300a071350ea5f79d34564417de3055770cbfb
 
   try {
     // Загрузка аудио на AssemblyAI
