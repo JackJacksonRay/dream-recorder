@@ -102,3 +102,9 @@ app.post('/transcribe', async (req, res) => {
 app.listen(port, () => {
   console.log(`Сервер запущен на порту ${port}`);
 });
+        
+
+
+
+
+
