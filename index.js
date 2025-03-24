@@ -17,25 +17,6 @@ if (!BOT_TOKEN || !ASSEMBLYAI_API_KEY) {
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
 // Middleware
- HEAD
-app.use(
-  fileUpload({
-    limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
-  })
-);
-app.use(express.static("public"));
-
-// Эндпоинт для транскрипции аудио
-app.post("/transcribe", async (req, res) => {
-  if (!req.files || !req.files.audio || !req.body.userId) {
-    return res.status(400).json({ error: "Файл или userId не найдены" });
-  }
-
-  const audio = req.files.audio;
-  const userId = req.body.userId; // Получаем userId из запроса
-  console.log("Получен аудиофайл:", audio.name);
-  console.log("Получен userId:", userId);
-
 app.use(fileUpload({
   limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
 }));
@@ -87,56 +68,39 @@ app.post('/transcribe', async (req, res) => {
     const resultUrl = `https://api.assemblyai.com/v2/transcript/${transcriptId}`;
 
     // Ожидание завершения транскрипции
-    let transcript;
-    while (true) {
+    const pollTranscriptStatus = async () => {
       const statusResponse = await axios.get(resultUrl, {
         headers: { authorization: ASSEMBLYAI_API_KEY },
       });
-      transcript = statusResponse.data;
-      if (transcript.status === 'completed' || transcript.status === 'error') break;
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
+      return statusResponse.data;
+    };
 
-HEAD
     const poll = async () => {
       const transcriptData = await pollTranscriptStatus();
-      if (transcriptData.status === "completed") {
+      if (transcriptData.status === 'completed') {
         return transcriptData;
-      } else if (transcriptData.status === "error") {
-        throw new Error("Ошибка транскрибации");
+      } else if (transcriptData.status === 'error') {
+        throw new Error('Ошибка транскрибации');
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
         return poll();
-      } 
+      }
     };
 
     const transcriptData = await poll();
-    const text = transcriptData.text;
-    res.json({ text });
+    const transcriptText = transcriptData.text; // Переименовал text в transcriptText, чтобы избежать конфликтов
 
-    // 3. Отправка результата в личный чат пользователя
-
-    if (transcript.status === 'error') {
-      throw new Error('Ошибка транскрибации');
-    }
-
-    const text = transcript.text;
-0d300a071350ea5f79d34564417de3055770cbfb
     const now = new Date();
     const dateTime = now.toLocaleString('ru-RU');
-    const message = `${dateTime}\n${text}`;
- HEAD
-    bot.sendMessage(userId, message).catch((err) => {
-      console.error(`Ошибка отправки пользователю ${userId}:`, err.message);
-    });
-
+    const message = `${dateTime}\n${transcriptText}`;
 
     // Отправка в личный чат пользователя
-    await bot.sendMessage(userId, message);
+    await bot.sendMessage(userId, message).catch(err => {
+      console.error(`Ошибка отправки пользователю ${userId}:`, err.message);
+    });
     console.log(`Сообщение отправлено пользователю ${userId}`);
 
     res.json({ text: message });
- 0d300a071350ea5f79d34564417de3055770cbfb
   } catch (error) {
     console.error('Ошибка при транскрибации:', error.message);
     res.status(500).json({ error: 'Ошибка при транскрибации' });
