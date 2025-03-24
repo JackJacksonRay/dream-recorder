@@ -8,6 +8,7 @@
   let analyser;
   let source;
   let isRecording = false;
+  let telegramUserId = null; // Для хранения userId
 
   let recordStartTime = 0;
   let timerInterval = null;
@@ -42,7 +43,12 @@
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         setTimeout(() => window.Telegram.WebApp.expand(), 500);
-        logToInterface("Telegram Web App инициализирован");
+        telegramUserId = window.Telegram.WebApp.initDataUnsafe.user?.id;
+        if (telegramUserId) {
+          logToInterface("Telegram User ID: " + telegramUserId);
+        } else {
+          logToInterface("Не удалось получить userId из Telegram Web App");
+        }
       } else {
         logToInterface("Telegram Web App не найден");
       }
@@ -138,7 +144,6 @@
         const amplitude = Math.min(avg / 128, 1);
         logToInterface(`Громкость: ${avg.toFixed(2)}, Амплитуда: ${amplitude.toFixed(2)}`);
 
-        // Меняем CSS-переменные, чтобы волны "дышали" в такт громкости
         document.documentElement.style.setProperty("--amplitude", `${10 + amplitude * 20}px`);
         document.documentElement.style.setProperty("--speed", `${10 - amplitude * 5}s`);
 
@@ -151,7 +156,7 @@
     }
   }
 
-  // Сброс значений волн до исходных
+  // Сброс значений волн
   function resetWaves() {
     document.documentElement.style.setProperty("--amplitude", "10px");
     document.documentElement.style.setProperty("--speed", "10s");
@@ -172,21 +177,16 @@
     }, 10);
   }
 
-  // Функции для таймера
+  // Таймер записи
   function startTimer() {
     recordStartTime = Date.now();
     const timerElement = document.getElementById("timer");
-
     timerInterval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - recordStartTime; // в мс
+      const elapsed = Date.now() - recordStartTime;
       const hours = Math.floor(elapsed / 3600000);
       const minutes = Math.floor((elapsed % 3600000) / 60000);
       const seconds = Math.floor((elapsed % 60000) / 1000);
-
-      timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(
-        minutes
-      ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      timerElement.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }, 1000);
   }
 
@@ -215,15 +215,12 @@
         isRecording = true;
         recordButton.disabled = true;
         stopButton.disabled = false;
-
         fadeInStatus("Идёт запись...");
         document.getElementById("progressBar").style.display = "none";
         audioChunks = [];
-
         mediaRecorder.ondataavailable = (event) => {
           audioChunks.push(event.data);
         };
-
         startTimer();
         await setupAudioAnalysis(stream);
       } catch (error) {
@@ -240,11 +237,7 @@
       isRecording = false;
       recordButton.disabled = false;
       stopButton.disabled = true;
-
-      // Останавливаем таймер
       stopTimer();
-
-      // Закрываем Web Audio API
       if (audioContext) {
         audioContext.close();
         audioContext = null;
@@ -273,6 +266,7 @@
         const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", audioBlob, "recording.webm");
+        formData.append("userId", telegramUserId); // Передаём userId
 
         try {
           const response = await fetch("/transcribe", {
@@ -280,7 +274,6 @@
             body: formData,
           });
           const result = await response.json();
-
           clearInterval(loadingInterval);
           clearInterval(progressInterval);
           progressBar.style.width = "100%";
@@ -299,17 +292,12 @@
     });
   }
 
-  // Инициализация всего приложения
+  // Инициализация приложения
   function initApp() {
     initTelegram();
     createWaves();
     initRecordHandlers();
-
-    // Скрываем прелоадер через 2.5 секунды
-    setTimeout(() => {
-      toggleLoader(false);
-    }, 2500);
-
+    setTimeout(() => toggleLoader(false), 2500);
     logToInterface("Инициализация завершена");
   }
 

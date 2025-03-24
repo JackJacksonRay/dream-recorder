@@ -7,10 +7,9 @@ const TelegramBot = require("node-telegram-bot-api");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Чтение переменных окружения (на Render их задаёшь в настройках сервиса)
-const BOT_TOKEN = process.env.BOT_TOKEN; // Токен от @BotFather
-const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY; // Твой API Key от AssemblyAI
-const CHAT_ID = "-1002502923348"; // Telegram ID или ID канала
+// Чтение переменных окружения
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
 
 if (!BOT_TOKEN || !ASSEMBLYAI_API_KEY) {
   console.error("Необходимые переменные окружения не заданы!");
@@ -22,19 +21,21 @@ const bot = new TelegramBot(BOT_TOKEN);
 // Middleware
 app.use(
   fileUpload({
-    limits: { fileSize: 10 * 1024 * 1024 }, // Ограничение размера файла ~10MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // Лимит 10 МБ
   })
 );
 app.use(express.static("public"));
 
 // Эндпоинт для транскрипции аудио
 app.post("/transcribe", async (req, res) => {
-  if (!req.files || !req.files.audio) {
-    return res.status(400).json({ error: "Файл не найден" });
+  if (!req.files || !req.files.audio || !req.body.userId) {
+    return res.status(400).json({ error: "Файл или userId не найдены" });
   }
 
   const audio = req.files.audio;
+  const userId = req.body.userId; // Получаем userId из запроса
   console.log("Получен аудиофайл:", audio.name);
+  console.log("Получен userId:", userId);
 
   try {
     // 1. Загрузка аудио на AssemblyAI
@@ -77,7 +78,6 @@ app.post("/transcribe", async (req, res) => {
       }
     }
 
-    // Рекурсивный polling через setTimeout
     const poll = async () => {
       const transcriptData = await pollTranscriptStatus();
       if (transcriptData.status === "completed") {
@@ -94,12 +94,12 @@ app.post("/transcribe", async (req, res) => {
     const text = transcriptData.text;
     res.json({ text });
 
-    // 3. Отправка результата транскрипции в Telegram
+    // 3. Отправка результата в личный чат пользователя
     const now = new Date();
     const dateTime = now.toLocaleString("ru-RU");
     const message = `${dateTime}\n${text}`;
-    bot.sendMessage(CHAT_ID, message).catch((err) => {
-      console.error("Ошибка отправки в Telegram:", err.message);
+    bot.sendMessage(userId, message).catch((err) => {
+      console.error(`Ошибка отправки пользователю ${userId}:`, err.message);
     });
   } catch (error) {
     console.error("Ошибка при транскрибации:", error.message);
@@ -111,4 +111,3 @@ app.post("/transcribe", async (req, res) => {
 app.listen(port, () => {
   console.log(`Сервер запущен на порту ${port}`);
 });
-
